@@ -22,10 +22,24 @@ router.post('/signin', async(req, res) => {
     try {
         await user.comparePassword(password)
 
-        const token = jwt.sign({userId: user._id}, "MY_SECRET_KEY")
+        const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY)
         res.send({token})
     } catch (err) {
         return res.status(401).send({error: invalidMessage})
+    }
+})
+
+router.post('/signup', async (req, res) => {
+    const {email, password, birthDate, firstName, lastName, phoneNumber, zipCode} = req.body
+    try {
+        const user = new User({email, password, birthDate, firstName, lastName, phoneNumber, zipCode})
+
+        await user.save()
+
+        const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY)
+        res.send({token})
+    } catch (err) {
+        return res.status(422).send(err.message)
     }
 })
 
