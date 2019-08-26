@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/seanmbills/FFBT-Server-Heroku/issues"
   },
-  "homepage": "https://github.com/seanmbills/FFBT-Server-Heroku#readme"
+  "homepage": "https://github.com/seanmbills/FFBT-Server-Heroku#readme",
+  "dependencies": {
+    "bcrypt": "^3.0.6",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.6.11"
+  }
 }
