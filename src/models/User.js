@@ -15,6 +15,45 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         min: [10, "Password must be at least 10 characters."]
+    },
+    birthDate: {
+        type: Date,
+        required: true,
+        default: Date.now,
+        validate: {
+            validator: function (v) {
+                    return new Date(v.getYear()+21, v.getMonth()-1, v.getDay()) <= new Date();
+            },
+            message: 'You must be at least 21 years old'
+        }
+    }, 
+    firstName: {
+        type: String,
+        required: true
+    }, 
+    lastName: {
+        type: String,
+        required: true,
+    },
+    phoneNumber: {
+        type: String,
+        validate: {
+            validator: function(v) {
+                return /\d{3}-\d{3}-\d{4}/.test(v);
+            },
+            message: props => `${props.value} is not a valid phone number!`
+        },
+        required: [true, 'User phone number required']
+    },
+    zipCode: {
+        type: Number,
+        validate: {
+            validator: function(v) {
+                return /\d{5}/.test(v)
+            },
+            message: props => `${props.value} is not a valid zip code!`
+        },
+        required: [true, 'Zip Code required']
     }
 })
 
