@@ -1,0 +1,19 @@
+{
+  "name": "Family Friendly Brewery Tracker Application",
+  "version": "1.0.0",
+  "description": "Heroku Server code for the FFBT Junior Design application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seanmbills/FFBT-Server-Heroku.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/seanmbills/FFBT-Server-Heroku/issues"
+  },
+  "homepage": "https://github.com/seanmbills/FFBT-Server-Heroku#readme"
+}
