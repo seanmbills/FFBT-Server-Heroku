@@ -1,6 +1,10 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 
+const phoneWithDashRegex = /\d{3}-\d{3}-\d{4}/
+const phoneWithoutDashReges = /\d{10}/
+const zipCodeRegex = /\d{5}/
+
 const userSchema = new mongoose.Schema({
     // email needs to match the universal regex check for an email
     email: {
@@ -38,17 +42,24 @@ const userSchema = new mongoose.Schema({
     },
     // phone number needs to match the standard XXX-XXX-XXXX format
     phoneNumber: {
-        type: Number,
-        minlength: [10, 'You must enter a valid phone number'],
-        maxlength: [11, 'You must enter a valid phone number'],
+        type: String,
+        validate: {
+            validator: function(v) {
+                return (phoneWithDashRegex.test(v) || phoneWithoutDashReges.test(v));
+            },
+            message: props => `${props.value} is not a valid phone number!`
+        },
         required: [true, 'User phone number required']
     },
     // zip code should match the standard XXXXX format
     zipCode: {
-        type: Number,
-        minlength: [5, 'Enter a valid Zip Code'],
-        maxlength: [5, 'Enter a valid zip code'],
-        required: [true, 'Zip Code required']
+        type: String,
+        validate: {
+            validator: function(v) {
+                return zipCodeRegex.test(v);
+            },
+            message: props => `${props.value} is not a valid phone number!`
+        },
     },
     // keep track of the date/time at which a user initially creates their account
     createdDate: {
