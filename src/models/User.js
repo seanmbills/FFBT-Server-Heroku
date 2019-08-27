@@ -1,9 +1,8 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 
-const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
-
 const userSchema = new mongoose.Schema({
+    // email needs to match the universal regex check for an email
     email: {
         type: String, 
         unique: true,
@@ -11,11 +10,13 @@ const userSchema = new mongoose.Schema({
         match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address'],
 
     }, 
+    // password should be at least 10 characters...can come back to this for changes later
     password: {
         type: String,
         required: true,
         min: [10, "Password must be at least 10 characters."]
     },
+    // birthdate should be at least 21 years old
     birthDate: {
         type: Date,
         required: true,
@@ -35,30 +36,41 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    // phone number needs to match the standard XXX-XXX-XXXX format
     phoneNumber: {
-        type: String,
-        validate: {
-            validator: function(v) {
-                return /\d{3}-\d{3}-\d{4}/.test(v);
-            },
-            message: props => `${props.value} is not a valid phone number!`
-        },
+        type: Number,
+        minlength: [10, 'You must enter a valid phone number'],
+        maxlength: [11, 'You must enter a valid phone number'],
         required: [true, 'User phone number required']
     },
+    // zip code should match the standard XXXXX format
     zipCode: {
         type: Number,
-        validate: {
-            validator: function(v) {
-                return /\d{5}/.test(v)
-            },
-            message: props => `${props.value} is not a valid zip code!`
-        },
+        minlength: [5, 'Enter a valid Zip Code'],
+        maxlength: [5, 'Enter a valid zip code'],
         required: [true, 'Zip Code required']
     },
+    // keep track of the date/time at which a user initially creates their account
     createdDate: {
         type: Date, 
         default: Date.now
+    },
+    // test header for when developers manually insert data for testing
+    testHeader: {
+        createdBy: {
+            type: String,
+            default: ''
+        }, 
+        createdDate: {
+            type: Date, 
+            default: Date.now
+        }
     }
+    /* FUTURE WORK: 
+        1) should look into adding in a "lastLoggedIn" field
+        2) further validation of passwords (aka special character, number, etc.)
+        3) should look into a retention length/date for test header items
+    */
 })
 
 userSchema.pre('save', function(next) {
@@ -82,8 +94,6 @@ userSchema.pre('save', function(next) {
         })
     })
 })
-
-
 
 userSchema.methods.comparePassword = function(enteredPassword) {
     const user = this

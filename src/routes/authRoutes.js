@@ -30,9 +30,9 @@ router.post('/signin', async(req, res) => {
 })
 
 router.post('/signup', async (req, res) => {
-    const {email, password, birthDate, firstName, lastName, phoneNumber, zipCode} = req.body
+    const {email, password, birthDate, firstName, lastName, phoneNumber, zipCode, testHeader} = req.body
     try {
-        const user = new User({email, password, birthDate, firstName, lastName, phoneNumber, zipCode})
+        const user = new User({email, password, birthDate, firstName, lastName, phoneNumber, zipCode, testHeader})
 
         await user.save()
 
