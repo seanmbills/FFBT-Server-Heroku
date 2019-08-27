@@ -1,9 +1,10 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 
-const phoneWithDashRegex = /\d{3}-\d{3}-\d{4}/
-const phoneWithoutDashReges = /\d{10}/
-const zipCodeRegex = /\d{5}/
+const phoneWithDashRegex = /^\d{3}-\d{3}-\d{4}$/
+const phoneWithoutDashReges = /^\d{10}$/
+const zipCodeRegex = /^\d{5}$/
+const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
 
 const userSchema = new mongoose.Schema({
     // email needs to match the universal regex check for an email
@@ -11,7 +12,7 @@ const userSchema = new mongoose.Schema({
         type: String, 
         unique: true,
         required: true,
-        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address'],
+        match: [emailRegex, 'Please fill a valid email address'],
 
     }, 
     // password should be at least 10 characters...can come back to this for changes later
