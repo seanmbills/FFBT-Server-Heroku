@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
         default: Date.now,
         validate: {
             validator: function (v) {
-                    return new Date(v.getYear()+21, v.getMonth()-1, v.getDay()) <= new Date();
+                return new Date(v.getYear()+21, v.getMonth()-1, v.getDay()) <= new Date();
             },
             message: 'You must be at least 21 years old'
         }
@@ -54,6 +54,10 @@ const userSchema = new mongoose.Schema({
             message: props => `${props.value} is not a valid zip code!`
         },
         required: [true, 'Zip Code required']
+    },
+    createdDate: {
+        type: Date, 
+        default: Date.now
     }
 })
 
