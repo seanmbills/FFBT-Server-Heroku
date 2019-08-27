@@ -22,7 +22,7 @@ router.post('/signin', async(req, res) => {
     try {
         await user.comparePassword(password)
 
-        const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY)
+        const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
         res.send({token})
     } catch (err) {
         return res.status(401).send({error: invalidMessage})
@@ -36,11 +36,15 @@ router.post('/signup', async (req, res) => {
 
         await user.save()
 
-        const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY)
+        const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
         res.send({token})
     } catch (err) {
         return res.status(422).send(err.message)
     }
+})
+
+router.get('/userInfo', async(req, res) => {
+    const user = await User.findById
 })
 
 module.exports = router

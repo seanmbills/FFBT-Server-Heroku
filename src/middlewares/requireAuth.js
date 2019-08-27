@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
         return res.status(401).send({error: loginErrorMessage})
 
     const token = authorization.replace('Bearer ', '')
-    jwt.verify(token, 'MY_SECRET_KEY', async (err, payload) => {
+    jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
         if (err) {
             return res.status(401).send({error: loginErrorMessage})
         }
