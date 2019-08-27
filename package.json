@@ -1,5 +1,5 @@
 {
-  "name": "Family Friendly Brewery Tracker Application",
+  "name": "familyfriendlybrewerytrackerapplication",
   "version": "1.0.0",
   "description": "Heroku Server code for the FFBT Junior Design application.",
   "main": "index.js",
