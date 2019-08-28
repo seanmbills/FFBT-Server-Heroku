@@ -12,7 +12,12 @@ const userSchema = new mongoose.Schema({
         type: String, 
         unique: true,
         required: true,
-        match: [emailRegex, 'Please fill a valid email address'],
+        validate: {
+            validator: function(v) {
+                return emailRegex.test(v)
+            },
+            message: props => `${props.value} is not a valid email address!`
+        }
 
     }, 
     // password should be at least 10 characters...can come back to this for changes later
@@ -62,6 +67,7 @@ const userSchema = new mongoose.Schema({
             },
             message: props => `${props.value} is not a valid phone number!`
         },
+        required:true
     },
     // keep track of the date/time at which a user initially creates their account
     createdDate: {

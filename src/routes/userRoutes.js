@@ -34,7 +34,7 @@ router.post('/userUpdate', async(req, res) => {
     
             const newUserInfo = {userEmail, password, birthDate, firstName, lastName, phoneNumber, zipCode, testHeader}
             const query = {_id: userId}
-            await User.findOneAndUpdate(query, newUserInfo, {upsert:false}, function(err, doc){
+            await User.findOneAndUpdate(query, newUserInfo, {upsert:false, runValidators:true}, function(err, doc){
                 if (err) return res.status(500).send({ error: err });
             });
 
