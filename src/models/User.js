@@ -41,7 +41,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // phone number needs to match the standard XXX-XXX-XXXX format
+    // phone number needs to match the standard XXX-XXX-XXXX or XXXXXXXXXX format
+    // need to add in unique cell phone number check
     phoneNumber: {
         type: String,
         validate: {
