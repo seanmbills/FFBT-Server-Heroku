@@ -76,7 +76,7 @@ router.post('/updatePassword', async(req, res) => {
                     return res.status(400).send({error: invalidMessage})
                 })
                 if (userEmail !== email)
-                    return res.status(401).send({error: "Invalid email to make this change."})
+                    return res.status(401).send({error: "Invalid account login credentials."})
         
                 doc._doc = {...doc._doc, password: newPassword, updatedDate: Date.now()}
                 doc.markModified('password')
@@ -95,5 +95,47 @@ router.post('/updatePassword', async(req, res) => {
 })
 //add ability to update email
 // should required additional auth (aka password) to do so
+router.post('/updateEmail', async(req, res) => {
+    const {authorization} = req.headers
+    // authorization == 'Bearer _________;
+    // need to string out 'Bearer' later
+    const {oldEmail, newEmail, password} = req.body
+
+    if (!authorization)
+        return res.status(401).send({error: loginErrorMessage})
+
+    const token = authorization.replace('Bearer ', '')
+    jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
+        
+        if (err) {
+            return res.status(401).send({error: loginErrorMessage})
+        }
+
+        const {userId} = payload
+        var user = await User.findById(userId, async function(err, doc) {
+            const userEmail = doc.email
+
+            try {
+                await doc.comparePassword(password).catch(function() {
+                    return res.status(400).send({error: invalidMessage})
+                })
+                if (userEmail !== oldEmail)
+                    return res.status(401).send({error: "Invalid account login credentials."})
+        
+                doc._doc = {...doc._doc, email: newEmail, updatedDate: Date.now()}
+                doc.markModified('email')
+                await doc.save()
+
+                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
+                res.send({token})
+            } catch (err) {
+                return res.status(401).send({error: err})
+            }
+        })
+        
+
+        req.user = user
+    })
+})
 
 module.exports = router
