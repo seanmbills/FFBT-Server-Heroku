@@ -12,7 +12,7 @@ router.post('/userUpdate', async(req, res) => {
     const {authorization} = req.headers
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
-    const {email, confirmPassword, birthDate, firstName, lastName, phoneNumber, zipCode, testHeader} = req.body
+    const {confirmPassword, birthDate, firstName, lastName, phoneNumber, zipCode} = req.body
 
     if (!authorization)
         return res.status(401).send({error: loginErrorMessage})
@@ -25,17 +25,18 @@ router.post('/userUpdate', async(req, res) => {
         }
 
         const {userId} = payload
-        const user = await User.findById(userId)
-        const password = user.password
-        const userEmail = user.email
+        var user = await User.findById(userId)
 
         try {
-            await user.comparePassword(confirmPassword)
-    
-            const newUserInfo = {userEmail, password, birthDate, firstName, lastName, phoneNumber, zipCode, testHeader}
+            await user.comparePassword(confirmPassword).catch(function() {
+                return res.status(400).send({error: invalidMessage})
+            })
+
+            user._doc = {...user._doc, birthDate, zipCode, firstName, lastName, phoneNumber, updatedDate:Date.now()}
+            
             const query = {_id: userId}
-            await User.findOneAndUpdate(query, newUserInfo, {upsert:false, runValidators:true}, function(err, doc){
-                if (err) return res.status(500).send({ error: err });
+            await User.findOneAndUpdate(query, user, {upsert:false, runValidators:true}, function(err, doc){
+                if (err) return res.status(500).send({ error: 'failed to update' });
             });
 
             const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
@@ -45,14 +46,53 @@ router.post('/userUpdate', async(req, res) => {
         }
 
         req.user = user
-        next()
     })
 })
 
 // add ability to update password
 // should require additional auth (aka old password) to do so
+router.post('/updatePassword', async(req, res) => {
+    const {authorization} = req.headers
+    // authorization == 'Bearer _________;
+    // need to string out 'Bearer' later
+    const {email, oldPassword, newPassword} = req.body
 
+    if (!authorization)
+        return res.status(401).send({error: loginErrorMessage})
 
+    const token = authorization.replace('Bearer ', '')
+    jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
+        
+        if (err) {
+            return res.status(401).send({error: loginErrorMessage})
+        }
+
+        const {userId} = payload
+        var user = await User.findById(userId, async function(err, doc) {
+            const userEmail = doc.email
+
+            try {
+                await doc.comparePassword(oldPassword).catch(function() {
+                    return res.status(400).send({error: invalidMessage})
+                })
+                if (userEmail !== email)
+                    return res.status(401).send({error: "Invalid email to make this change."})
+        
+                doc._doc = {...doc._doc, password: newPassword, updatedDate: Date.now()}
+                doc.markModified('password')
+                await doc.save()
+
+                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
+                res.send({token})
+            } catch (err) {
+                return res.status(401).send({error: err})
+            }
+        })
+        
+
+        req.user = user
+    })
+})
 //add ability to update email
 // should required additional auth (aka password) to do so
 

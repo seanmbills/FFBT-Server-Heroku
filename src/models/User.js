@@ -78,12 +78,16 @@ const userSchema = new mongoose.Schema({
     testHeader: {
         createdBy: {
             type: String,
-            default: ''
+            default: 'testing code'
         }, 
         createdDate: {
             type: Date, 
             default: Date.now
         }
+    },
+    updatedDate: {
+        type: Date,
+        default: Date.now
     }
     /* FUTURE WORK: 
         1) should look into adding in a "lastLoggedIn" field
