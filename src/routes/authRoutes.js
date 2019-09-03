@@ -14,19 +14,29 @@ router.post('/signin', async(req, res) => {
         return res.status(422).send({error: "Must provide email and password."})
     }
 
-    const user = await User.findOne({email})
-    if (!user) {
-        return res.status(401).send({error: invalidMessage})
-    }
+    var user = await User.findOne({email}, async function(err, doc) {
+        if (!doc) {
+            return res.status(401).send({error: invalidMessage})
+        }
+    
+        try {
+            await user.comparePassword(password)
+    
 
-    try {
-        await user.comparePassword(password)
+            // added the change below to update the new lastLoggedIn field on successful signin
+            // not sure this is necessary, and probably won't need/use it anytime soon so this 
+            // branch will likely get destroyed and if we want to add this later, we can
+            doc._doc = {...doc_.doc, lastLoggedIn: Date.now()}
+            doc.markModified('lastLoggedIn')
+            await doc.save()
 
-        const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-        res.send({token})
-    } catch (err) {
-        return res.status(401).send({error: invalidMessage})
-    }
+            const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
+            res.send({token})
+        } catch (err) {
+            return res.status(401).send({error: invalidMessage})
+        }
+    })
+    
 })
 
 router.post('/signup', async (req, res) => {
