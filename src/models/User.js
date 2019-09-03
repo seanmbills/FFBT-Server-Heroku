@@ -77,6 +77,10 @@ const userSchema = new mongoose.Schema({
             type: Date, 
             default: Date.now
         }
+    },
+    lastLoggedIn: {
+        type: Date,
+        default: Date.now
     }
     /* FUTURE WORK: 
         1) should look into adding in a "lastLoggedIn" field
