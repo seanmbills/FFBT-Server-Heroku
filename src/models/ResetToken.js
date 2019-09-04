@@ -47,4 +47,21 @@ tokenSchema.pre('save', function(next) {
     })
 })
 
+tokenSchema.methods.compareTokens = function(enteredToken) {
+    const token = this
+    return new Promise((resolve, reject) => {
+        bcrypt.compare(enteredToken, token.token, (err, isMatch) => {
+            if (err) {
+                return reject(err)
+            }
+
+            if (!isMatch) {
+                return reject(false)
+            }
+
+            resolve(true)
+        })
+    })
+}
+
 mongoose.model('Token', tokenSchema)
