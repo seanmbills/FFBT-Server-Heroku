@@ -7,11 +7,13 @@ const nodemailer = require('nodemailer')
 
 const router = express.Router()
 
+const invalidMessage = "Please provide a valid email address."
+
 router.post('/forgotPassword', async(req, res) => {
     const {email} = req.body
     
     if (!email || email === '') {
-        return res.status(422).send({error: "Must provide an email."})
+        return res.status(422).send({error: invalidMessage})
     }
 
     const user = await User.findOne({email})
@@ -54,7 +56,7 @@ Sincerely,\nThe Family Friendly Brewery Tracker team`
 
         await transporter.sendMail(mailOptions, function(err, response) {
             if (err)
-                return res.status(401).send({error: err})
+                return res.status(401).send({error: "We seem to have experienced an error in sending a reset request. Are you sure you haven't requested a change in the past hour?"})
             else
                 return res.status(200).send({response: response})
         })
