@@ -1,4 +1,5 @@
 require('./models/User')
+require('./models/ResetToken')
 
 const express = require('express')
 const mongoose = require('mongoose')
