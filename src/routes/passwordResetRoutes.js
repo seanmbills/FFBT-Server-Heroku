@@ -8,6 +8,7 @@ const nodemailer = require('nodemailer')
 const router = express.Router()
 
 const invalidMessage = "Please provide a valid email address."
+const invalidToken = "The Password Reset code provided is invalid, or has expired."
 
 router.post('/forgotPassword', async(req, res) => {
     const {email} = req.body
@@ -54,6 +55,28 @@ Sincerely,\nThe Family Friendly Brewery Tracker team`
             else
                 return res.status(200).send({response: response})
         })
+    } catch (err) {
+        return res.status(401).send({error: err})
+    }
+})
+
+router.post('/resetPassword', async(req, res) => {
+    const {authorization} = req.headers.authorization
+    const {email, password} = req.body
+
+    if (!authorization || authorization === '')
+        return res.status(401).send({error: invalidToken})
+
+    const token = await Token.findOne({email, token})
+    if (!token) {
+        console.log(`Couldn't find email matching: ${email}`)
+        return res.status(401).send({error: invalidToken})
+    }
+
+    const user
+
+    try {
+        
     } catch (err) {
         return res.status(401).send({error: err})
     }
