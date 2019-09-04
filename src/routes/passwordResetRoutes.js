@@ -41,7 +41,8 @@ router.post('/forgotPassword', async(req, res) => {
             from: `${process.env.TRANSPORT_EMAIL_ADDRESS}`,
             to: `${user.email}`,
             subject: "Family Friendly Brewery Tracker - Password Reset Request",
-            text: `You are receiving this email because you (or someone else) have requested to reset the password associated with your account.\n\n
+            text: `Hello ${user.firstName},\n\n
+You are receiving this email because you (or someone else) have requested to reset the password associated with your account.\n\n
 If you made this request, please enter the following reset code into the 'Enter Code' field in the Family Friendly Brewery Tracker application.\n\n
 ${tokenValue}
 Please note that this reset code is only valid for one hour.\n
