@@ -26,8 +26,6 @@ router.post('/forgotPassword', async(req, res) => {
         const tokenValue = crypto.randomBytes(8).toString('hex')
         const userToken = Token({email: email, token: tokenValue, createdAt: Date.now()})
         await userToken.save()
-
-        console.log('token successfully saved')
         
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -36,8 +34,6 @@ router.post('/forgotPassword', async(req, res) => {
                 pass: `${process.env.TRANSPORT_PASSWORD}`
             }
         })
-
-        console.log('created transporter')
 
         const mailOptions = {
             from: `${process.env.TRANSPORT_EMAIL_ADDRESS}`,
@@ -51,8 +47,6 @@ Please note that this reset code is only valid for one hour.\n
 If you did not request this password reset, please ignore this email and your password will remain unchanged.\n\n\n
 Sincerely,\nThe Family Friendly Brewery Tracker team`
         }
-
-        console.log('created mailOptions')
 
         await transporter.sendMail(mailOptions, function(err, response) {
             if (err)
