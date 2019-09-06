@@ -1,9 +1,8 @@
 const express = require('express')
 const mongoose = require('mongoose')
-const crypto = require('crypto')
 const User = mongoose.model('User')
 const Token = mongoose.model('Token')
-const nodemailer = require('nodemailer')
+const EmailClient = require('../api/emailClient')
 
 const router = express.Router()
 
@@ -19,66 +18,50 @@ router.post('/forgotPassword', async(req, res) => {
 
     const user = await User.findOne({email})
     if (!user) {
-        console.log(`Couldn't find email matching: ${email}`)
         return res.status(401).send({error: invalidMessage})
     }
 
     try {
-        const tokenValue = crypto.randomBytes(8).toString('hex')
-        const userToken = Token({email: email, token: tokenValue, createdAt: Date.now()})
-        await userToken.save()
-        
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: `${process.env.TRANSPORT_EMAIL_ADDRESS}`,
-                pass: `${process.env.TRANSPORT_PASSWORD}`
-            }
-        })
-
-        const mailOptions = {
-            from: `${process.env.TRANSPORT_EMAIL_ADDRESS}`,
-            to: `${user.email}`,
-            subject: "Family Friendly Brewery Tracker - Password Reset Request",
-            text: `Hello ${user.firstName},\n\n
-You are receiving this email because you (or someone else) have requested to reset the password associated with your account.\n\n
-If you made this request, please enter the following reset code into the 'Enter Code' field in the Family Friendly Brewery Tracker application.\n\n
-${tokenValue}
-Please note that this reset code is only valid for one hour.\n
-If you did not request this password reset, please ignore this email and your password will remain unchanged.\n\n\n
-Sincerely,\nThe Family Friendly Brewery Tracker team`
-        }
-
-        await transporter.sendMail(mailOptions, function(err, response) {
-            if (err)
-                return res.status(401).send({error: "We seem to have experienced an error in sending a reset request. Are you sure you haven't requested a change in the past hour?"})
-            else
-                return res.status(200).send({response: response})
-        })
+        return await EmailClient.sendResetEmail(email, user, res)
     } catch (err) {
         return res.status(401).send({error: err})
     }
 })
 
 router.post('/resetPassword', async(req, res) => {
-    const {authorization} = req.headers.authorization
-    const {email, password} = req.body
+    const {email, resetCode, newPassword} = req.body
 
-    if (!authorization || authorization === '')
-        return res.status(401).send({error: invalidToken})
+    if (!email || email === '')
+        return res.status(401).send({error: "Must provide a valid email address."})
+    if (!resetCode || resetCode === '')
+        return res.status(401).send({error: "Must provide a valid reset code."})
+    if (!newPassword || newPassword === '')
+        return res.status(401).send({error: "Must provide a valid password."})
 
-    const token = await Token.findOne({email, token})
+    const token = await Token.findOne({email})
     if (!token) {
-        console.log(`Couldn't find email matching: ${email}`)
         return res.status(401).send({error: invalidToken})
     }
-
-    const user
-
+    
     try {
+        await token.compareToken(resetCode)
         
+        var user = await User.findOne({email}, async function (err, doc) {
+            if (err) {
+                return res.status(401).send({error: err})
+            }
+            try {
+                doc._doc = {...doc._doc, password: newPassword, updatedDate: Date.now()}
+                doc.markModified('password')
+                await doc.save()
+            } catch (err) {
+                return res.status(401).send({error: err})
+            }
+        })
+        await EmailClient.sendSuccessfulResetEmail(email, user, res)
+        return res.status(200).send({updatedAccount: user.email})
     } catch (err) {
-        return res.status(401).send({error: err})
+        return res.status(401).send({error: 'Please provide a valid token.'})
     }
 })
 

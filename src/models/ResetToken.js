@@ -22,8 +22,9 @@ const tokenSchema = new mongoose.Schema({
     createdAt: {
         type: Date, 
         default: Date.now,
-        required: true,
-        expires: 3600
+        index: {
+            expires: '60m'
+        }
     }
 })
 
@@ -47,7 +48,7 @@ tokenSchema.pre('save', function(next) {
     })
 })
 
-tokenSchema.methods.compareTokens = function(enteredToken) {
+tokenSchema.methods.compareToken = function(enteredToken) {
     const token = this
     return new Promise((resolve, reject) => {
         bcrypt.compare(enteredToken, token.token, (err, isMatch) => {
