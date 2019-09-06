@@ -43,8 +43,4 @@ router.post('/signup', async (req, res) => {
     }
 })
 
-router.get('/userInfo', async(req, res) => {
-    const user = await User.findById
-})
-
 module.exports = router

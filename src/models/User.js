@@ -12,7 +12,12 @@ const userSchema = new mongoose.Schema({
         type: String, 
         unique: true,
         required: true,
-        match: [emailRegex, 'Please fill a valid email address'],
+        validate: {
+            validator: function(v) {
+                return emailRegex.test(v)
+            },
+            message: props => `${props.value} is not a valid email address!`
+        }
 
     }, 
     // password should be at least 10 characters...can come back to this for changes later
@@ -41,7 +46,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // phone number needs to match the standard XXX-XXX-XXXX format
+    // phone number needs to match the standard XXX-XXX-XXXX or XXXXXXXXXX format
+    // need to add in unique cell phone number check
     phoneNumber: {
         type: String,
         validate: {
@@ -61,6 +67,7 @@ const userSchema = new mongoose.Schema({
             },
             message: props => `${props.value} is not a valid phone number!`
         },
+        required:true
     },
     // keep track of the date/time at which a user initially creates their account
     createdDate: {
@@ -71,12 +78,16 @@ const userSchema = new mongoose.Schema({
     testHeader: {
         createdBy: {
             type: String,
-            default: ''
+            default: 'testing code'
         }, 
         createdDate: {
             type: Date, 
             default: Date.now
         }
+    },
+    updatedDate: {
+        type: Date,
+        default: Date.now
     }
     /* FUTURE WORK: 
         1) should look into adding in a "lastLoggedIn" field
