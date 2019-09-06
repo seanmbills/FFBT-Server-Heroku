@@ -22,8 +22,7 @@ module.exports = {
         
         var mailOptions = {
             from: `${process.env.TRANSPORT_EMAIL_ADDRESS}`,
-            // to: `${user.email}`,
-            to: "seanmichaelbills@gmail.com",
+            to: `${user.email}`,
             subject: "Family Friendly Brewery Tracker - Password Reset Request",
             text: `Hello ${user.firstName},\n\n
 You are receiving this email because you (or someone else) have requested to reset the password associated with your account.\n\n
@@ -46,8 +45,7 @@ Sincerely,\nThe Family Friendly Brewery Tracker team`
         // need to finish the body of this email   
         var mailOptions = {
             from: `${process.env.TRANSPORT_EMAIL_ADDRESS}`,
-            // to: `${user.email}`,
-            to: "seanmichaelbills@gmail.com",
+            to: `${user.email}`,
             subject: "Family Friendly Brewery Tracker - Password Reset Request",
             text: `Hello ${user.firstName},\n\n
 You are receiving this email because the password associated with your Family Friendly Brewery Tracker application has been updated.\n\n
