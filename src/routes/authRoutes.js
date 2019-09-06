@@ -10,7 +10,7 @@ const invalidMessage = "Invalid email or password."
 router.post('/signin', async(req, res) => {
     const {emailOrId, password} = req.body
     
-    if (!email || !password) {
+    if (!emailOrId || !password) {
         return res.status(422).send({error: "Must provide a valid email, or User Id, and a valid password."})
     }
 
