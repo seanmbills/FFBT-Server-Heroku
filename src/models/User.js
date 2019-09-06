@@ -5,7 +5,7 @@ const phoneWithDashRegex = /^\d{3}-\d{3}-\d{4}$/
 const phoneWithoutDashReges = /^\d{10}$/
 const zipCodeRegex = /^\d{5}$/
 const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
-const usernameRegex = /^\[0-9A-Za-z]{1,30}$/
+const usernameRegex = /^[0-9A-Za-z_]{1,30}$/
 
 const userSchema = new mongoose.Schema({
     // email needs to match the universal regex check for an email
