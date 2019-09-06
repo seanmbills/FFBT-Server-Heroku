@@ -14,7 +14,7 @@ router.post('/signin', async(req, res) => {
         return res.status(422).send({error: "Must provide a valid email, or User Id, and a valid password."})
     }
 
-    const user = await User.findOne({emailOrId})
+    const user = await User.findOne({$or: [{'email': emailOrId}, {'userId': emailOrId}]})
     if (!user) {
         return res.status(401).send({error: invalidMessage})
     }
