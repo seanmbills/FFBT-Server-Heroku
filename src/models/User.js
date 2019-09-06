@@ -140,6 +140,7 @@ userSchema.methods.comparePassword = function(enteredPassword) {
             }
 
             if (!isMatch) {
+                console.log("passwords didn't match")
                 return reject(false)
             }
 
