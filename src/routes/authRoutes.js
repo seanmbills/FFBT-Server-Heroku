@@ -8,13 +8,13 @@ const router = express.Router()
 const invalidMessage = "Invalid email or password."
 
 router.post('/signin', async(req, res) => {
-    const {email, password} = req.body
+    const {emailOrId, password} = req.body
     
     if (!email || !password) {
-        return res.status(422).send({error: "Must provide email and password."})
+        return res.status(422).send({error: "Must provide a valid email, or User Id, and a valid password."})
     }
 
-    const user = await User.findOne({email})
+    const user = await User.findOne({emailOrId})
     if (!user) {
         return res.status(401).send({error: invalidMessage})
     }
@@ -30,9 +30,9 @@ router.post('/signin', async(req, res) => {
 })
 
 router.post('/signup', async (req, res) => {
-    const {email, password, birthDate, firstName, lastName, phoneNumber, zipCode, testHeader} = req.body
+    const {email, userId, password, birthDate, firstName, lastName, phoneNumber, zipCode, testHeader} = req.body
     try {
-        const user = new User({email, password, birthDate, firstName, lastName, phoneNumber, zipCode, testHeader})
+        const user = new User({email, userId, password, birthDate, firstName, lastName, phoneNumber, zipCode, testHeader})
 
         await user.save()
 
