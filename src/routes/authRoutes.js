@@ -42,7 +42,7 @@ router.post('/signup', async (req, res) => {
         const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
         res.send({token})
     } catch (err) {
-        return res.status(422).send(err.message)
+        return res.status(422).send({error: err.message})
     }
 })
 
