@@ -54,7 +54,7 @@ router.post('/userUpdate', async(req, res) => {
 // add ability to update password
 // should require additional auth (aka old password) to do so
 router.post('/updatePassword', async(req, res) => {
-    const {authorization} = req.headers.authorization
+    const {authorization} = req.headers
     console.log("Auth token: " + authorization)
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
