@@ -45,6 +45,7 @@ router.post('/userUpdate', async(req, res) => {
                     doc.markModified('lastName')
                 if (zipCode !== null) 
                     doc.markModified('zipCode')
+                doc.markModified('updatedDate')
                 await doc.save()
     
                 const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
@@ -93,6 +94,7 @@ router.post('/updatePassword', async(req, res) => {
                 
                 doc._doc = {...doc._doc, password: newPassword, updatedDate: Date.now()}
                 doc.markModified('password')
+                doc.markModified('updatedDate')
                 await doc.save()
 
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
@@ -137,6 +139,7 @@ router.post('/updateEmail', async(req, res) => {
                 
                 doc._doc = {...doc._doc, email: newEmail, updatedDate: Date.now()}
                 doc.markModified('email')
+                doc.markModified('updatedDate')
                 await doc.save()
 
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
@@ -182,6 +185,7 @@ router.post('/updatePhone', async(req, res) => {
                 
                 doc._doc = {...doc._doc, phoneNumber: newPhone, updatedDate: Date.now()}
                 doc.markModified('phoneNumber')
+                doc.markModified('updatedDate')
                 await doc.save()
 
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
