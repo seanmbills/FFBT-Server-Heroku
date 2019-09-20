@@ -61,6 +61,7 @@ router.post('/updatePassword', async(req, res) => {
 
     if (!authorization) {
         console.log("No authorization token provided for update password.")
+        console.log({error: loginErrorMessage})
         return res.status(401).send({error: loginErrorMessage})
     }
 
