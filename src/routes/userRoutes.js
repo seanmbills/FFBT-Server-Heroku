@@ -12,10 +12,12 @@ router.post('/userUpdate', async(req, res) => {
     const {authorization} = req.headers
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
-    const {confirmPassword, birthDate, firstName, lastName, phoneNumber, zipCode} = req.body
+    const {firstName, lastName, zipCode} = req.body
 
-    if (!authorization)
+    if (!authorization) {
+        console.log("No authorization token provided for user update.")
         return res.status(401).send({error: loginErrorMessage})
+    }
 
     const token = authorization.replace('Bearer ', '')
     jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
@@ -25,25 +27,33 @@ router.post('/userUpdate', async(req, res) => {
         }
 
         const {userId} = payload
-        var user = await User.findById(userId)
 
-        try {
-            await user.comparePassword(confirmPassword).catch(function() {
-                return res.status(400).send({error: invalidMessage})
-            })
+        var user = await User.findById(userId, async function(err, doc) {
+            if (err) {
+                return res.status(400).send({error: "Couldn't find a user with that email address."})
+            }
 
-            user._doc = {...user._doc, birthDate, zipCode, firstName, lastName, phoneNumber, updatedDate:Date.now()}
-            
-            const query = {_id: userId}
-            await User.findOneAndUpdate(query, user, {upsert:false, runValidators:true}, function(err, doc){
-                if (err) return res.status(500).send({ error: 'failed to update' });
-            });
+            var first = firstName === '' ? doc._doc.firstName : firstName
+            var last = lastName === '' ? doc._doc.lastName : lastName
+            var zip = zipCode === '' ? doc._doc.zipCode : zipCode
 
-            const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-            res.send({token})
-        } catch (err) {
-            return res.status(401).send({error: err})
-        }
+            try {
+                doc._doc = {...doc._doc, zipCode : zip, firstName: first , lastName: last, updatedDate:Date.now()}
+                if (firstName !== '')
+                    doc.markModified('firstName')
+                if (lastName !== '')
+                    doc.markModified('lastName')
+                if (zipCode !== '') 
+                    doc.markModified('zipCode')
+                doc.markModified('updatedDate')
+                await doc.save()
+    
+                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
+                res.send({token})
+            } catch (err) {
+                return res.status(401).send({error: err})
+            }
+        })
 
         req.user = user
     })
@@ -53,12 +63,16 @@ router.post('/userUpdate', async(req, res) => {
 // should require additional auth (aka old password) to do so
 router.post('/updatePassword', async(req, res) => {
     const {authorization} = req.headers
+    console.log("Auth token: " + authorization)
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
-    const {email, oldPassword, newPassword} = req.body
+    const {oldPassword, newPassword} = req.body
 
-    if (!authorization)
+    if (!authorization) {
+        console.log("No authorization token provided for update password.")
+        console.log({error: loginErrorMessage})
         return res.status(401).send({error: loginErrorMessage})
+    }
 
     const token = authorization.replace('Bearer ', '')
     jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
@@ -69,17 +83,18 @@ router.post('/updatePassword', async(req, res) => {
 
         const {userId} = payload
         var user = await User.findById(userId, async function(err, doc) {
-            const userEmail = doc.email
+            if (err) {
+                return res.status(400).send({error: "Couldn't find your account. Please ensure you are logged in."})
+            }
 
             try {
                 await doc.comparePassword(oldPassword).catch(function() {
                     return res.status(400).send({error: invalidMessage})
                 })
-                if (userEmail !== email)
-                    return res.status(401).send({error: "Invalid account login credentials."})
-        
+                
                 doc._doc = {...doc._doc, password: newPassword, updatedDate: Date.now()}
                 doc.markModified('password')
+                doc.markModified('updatedDate')
                 await doc.save()
 
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
@@ -100,7 +115,7 @@ router.post('/updateEmail', async(req, res) => {
     const {authorization} = req.headers
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
-    const {oldEmail, newEmail, password} = req.body
+    const {newEmail, password} = req.body
 
     if (!authorization)
         return res.status(401).send({error: loginErrorMessage})
@@ -114,17 +129,17 @@ router.post('/updateEmail', async(req, res) => {
 
         const {userId} = payload
         var user = await User.findById(userId, async function(err, doc) {
-            const userEmail = doc.email
-
+            if (err) {
+                return res.status(400).send({error: "Couldn't find a user with that email address."})
+            }
             try {
                 await doc.comparePassword(password).catch(function() {
                     return res.status(400).send({error: invalidMessage})
                 })
-                if (userEmail !== oldEmail)
-                    return res.status(401).send({error: "Invalid account login credentials."})
-        
+                
                 doc._doc = {...doc._doc, email: newEmail, updatedDate: Date.now()}
                 doc.markModified('email')
+                doc.markModified('updatedDate')
                 await doc.save()
 
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
@@ -145,7 +160,7 @@ router.post('/updatePhone', async(req, res) => {
     const {authorization} = req.headers
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
-    const {emailOrId, password, newPhone} = req.body
+    const {password, newPhone} = req.body
 
     if (!authorization)
         return res.status(401).send({error: loginErrorMessage})
@@ -159,18 +174,18 @@ router.post('/updatePhone', async(req, res) => {
 
         const {userId} = payload
         var user = await User.findById(userId, async function(err, doc) {
-            const userEmail = doc.email
-            const userId = doc.userId
+            if (err) {
+                return res.status(400).send({error: "Couldn't find your account. Please make sure you are logged in."})
+            }
 
             try {
                 await doc.comparePassword(password).catch(function() {
                     return res.status(400).send({error: invalidMessage})
                 })
-                if (userEmail !== emailOrId && userId !== emailOrId)
-                    return res.status(401).send({error: "Invalid account login credentials."})
-        
+                
                 doc._doc = {...doc._doc, phoneNumber: newPhone, updatedDate: Date.now()}
                 doc.markModified('phoneNumber')
+                doc.markModified('updatedDate')
                 await doc.save()
 
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
@@ -179,52 +194,6 @@ router.post('/updatePhone', async(req, res) => {
                 return res.status(401).send({error: err})
             }
         })
-        req.user = user
-    })
-})
-
-// add ability to update password
-// should require additional auth (aka old password) to do so
-router.post('/updateUserId', async(req, res) => {
-    const {authorization} = req.headers
-    // authorization == 'Bearer _________;
-    // need to string out 'Bearer' later
-    const {emailOrId, password, newUserId} = req.body
-
-    if (!authorization)
-        return res.status(401).send({error: loginErrorMessage})
-
-    const token = authorization.replace('Bearer ', '')
-    jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
-        
-        if (err) {
-            return res.status(401).send({error: loginErrorMessage})
-        }
-
-        const {userId} = payload
-        var user = await User.findById(userId, async function(err, doc) {
-            const userEmail = doc.email
-            const userId = doc.userId
-
-            try {
-                await doc.comparePassword(password).catch(function() {
-                    return res.status(400).send({error: invalidMessage})
-                })
-                if (userEmail !== emailOrId && userId !== emailOrId)
-                    return res.status(401).send({error: "Invalid account login credentials."})
-        
-                doc._doc = {...doc._doc, userId: newUserId, updatedDate: Date.now()}
-                doc.markModified('password')
-                await doc.save()
-
-                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-                res.send({token})
-            } catch (err) {
-                return res.status(401).send({error: err})
-            }
-        })
-        
-
         req.user = user
     })
 })
