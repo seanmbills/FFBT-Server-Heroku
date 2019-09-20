@@ -33,9 +33,9 @@ router.post('/userUpdate', async(req, res) => {
                 return res.status(400).send({error: "Couldn't find a user with that email address."})
             }
 
-            var first = firstName === '' ? user._doc.firstName : firstName
-            var last = lastName === '' ? user._doc.lastName : lastName
-            var zip = zipCode === null ? user._doc.zipCode : zipCode
+            var first = firstName === '' ? doc._doc.firstName : firstName
+            var last = lastName === '' ? doc._doc.lastName : lastName
+            var zip = zipCode === null ? doc._doc.zipCode : zipCode
 
             try {
                 doc._doc = {...user._doc, zipCode : zip, firstName: first , lastName: last, updatedDate:Date.now()}
