@@ -1,5 +1,16 @@
 const mongoose = require('mongoose')
+const NodeGeocoder = require('node-geocoder')
 
+
+const options = {
+    provider: 'mapquest',
+  
+    httpAdapter: 'https', // Default
+    apiKey: process.env.MAPQUEST_API_KEY, // for Mapquest, OpenCage, Google Premier
+    formatter: null         // 'gpx', 'string', ...
+};
+
+const geocoder = NodeGeocoder(options);
 
 const zipCodeRegex = /^\d{5}$/
 const phoneWithDashRegex = /^\d{3}-\d{3}-\d{4}$/
@@ -38,6 +49,10 @@ const brewerySchema = new mongoose.Schema({
             },
         }
     },
+    geoLocation: {
+        type: { type: String },
+        coordinates: []
+    },
     phoneNumber: {
         type: String,
         unique: true,
@@ -51,6 +66,7 @@ const brewerySchema = new mongoose.Schema({
     },
     email: {
         type: String,
+        unique:true,
         validate: {
             validator: function(v) {
                 return emailRegex.test(v)
@@ -60,6 +76,7 @@ const brewerySchema = new mongoose.Schema({
     },
     website: {
         type: String,
+        unique: true,
         validate: {
             validator: function(v) {
                 return urlRegex.test(v)
@@ -465,8 +482,10 @@ const brewerySchema = new mongoose.Schema({
     }
 })
 
-brewerySchema.pre('save', function(next) {
-    
+brewerySchema.index({ "geoLocation": "2dsphere" });
+
+brewerySchema.pre('save', async function(next) {
+    await geocoder.geocode()
 })
 
 
