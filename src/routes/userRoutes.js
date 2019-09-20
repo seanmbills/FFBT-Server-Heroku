@@ -38,7 +38,7 @@ router.post('/userUpdate', async(req, res) => {
             var zip = zipCode === null ? doc._doc.zipCode : zipCode
 
             try {
-                doc._doc = {...user._doc, zipCode : zip, firstName: first , lastName: last, updatedDate:Date.now()}
+                doc._doc = {...doc._doc, zipCode : zip, firstName: first , lastName: last, updatedDate:Date.now()}
                 if (firstName !== '')
                     doc.markModified('firstName')
                 if (lastName !== '')
