@@ -27,8 +27,12 @@ router.post('/userUpdate', async(req, res) => {
         const {userId} = payload
         var user = await User.findById(userId)
 
+        var first = firstName === '' ? user._doc.firstName : firstName
+        var last = lastName === '' ? user._doc.lastName : lastName
+        var zip = zipCode === null ? user._doc.zipCode : zipCode
+
         try {
-            user._doc = {...user._doc, zipCode, firstName, lastName, updatedDate:Date.now()}
+            user._doc = {...user._doc, zipCode : zip, firstName: first , lastName: last, updatedDate:Date.now()}
             
             const query = {_id: userId}
             await User.findOneAndUpdate(query, user, {upsert:false, runValidators:true}, function(err, doc){
@@ -51,7 +55,7 @@ router.post('/updatePassword', async(req, res) => {
     const {authorization} = req.headers
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
-    const {email, oldPassword, newPassword} = req.body
+    const {oldPassword, newPassword} = req.body
 
     if (!authorization)
         return res.status(401).send({error: loginErrorMessage})
@@ -65,15 +69,15 @@ router.post('/updatePassword', async(req, res) => {
 
         const {userId} = payload
         var user = await User.findById(userId, async function(err, doc) {
-            const userEmail = doc.email
+            if (err) {
+                return res.status(400).send({error: "Couldn't find your account. Please ensure you are logged in."})
+            }
 
             try {
                 await doc.comparePassword(oldPassword).catch(function() {
                     return res.status(400).send({error: invalidMessage})
                 })
-                if (userEmail !== email)
-                    return res.status(401).send({error: "Invalid account login credentials."})
-        
+                
                 doc._doc = {...doc._doc, password: newPassword, updatedDate: Date.now()}
                 doc.markModified('password')
                 await doc.save()
@@ -96,7 +100,7 @@ router.post('/updateEmail', async(req, res) => {
     const {authorization} = req.headers
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
-    const {oldEmail, newEmail, password} = req.body
+    const {newEmail, password} = req.body
 
     if (!authorization)
         return res.status(401).send({error: loginErrorMessage})
@@ -110,15 +114,14 @@ router.post('/updateEmail', async(req, res) => {
 
         const {userId} = payload
         var user = await User.findById(userId, async function(err, doc) {
-            const userEmail = doc.email
-
+            if (err) {
+                return res.status(400).send({error: "Couldn't find a user with that email address."})
+            }
             try {
                 await doc.comparePassword(password).catch(function() {
                     return res.status(400).send({error: invalidMessage})
                 })
-                if (userEmail !== oldEmail)
-                    return res.status(401).send({error: "Invalid account login credentials."})
-        
+                
                 doc._doc = {...doc._doc, email: newEmail, updatedDate: Date.now()}
                 doc.markModified('email')
                 await doc.save()
@@ -141,7 +144,7 @@ router.post('/updatePhone', async(req, res) => {
     const {authorization} = req.headers
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
-    const {emailOrId, password, newPhone} = req.body
+    const {password, newPhone} = req.body
 
     if (!authorization)
         return res.status(401).send({error: loginErrorMessage})
@@ -155,16 +158,15 @@ router.post('/updatePhone', async(req, res) => {
 
         const {userId} = payload
         var user = await User.findById(userId, async function(err, doc) {
-            const userEmail = doc.email
-            const userId = doc.userId
+            if (err) {
+                return res.status(400).send({error: "Couldn't find your account. Please make sure you are logged in."})
+            }
 
             try {
                 await doc.comparePassword(password).catch(function() {
                     return res.status(400).send({error: invalidMessage})
                 })
-                if (userEmail !== emailOrId && userId !== emailOrId)
-                    return res.status(401).send({error: "Invalid account login credentials."})
-        
+                
                 doc._doc = {...doc._doc, phoneNumber: newPhone, updatedDate: Date.now()}
                 doc.markModified('phoneNumber')
                 await doc.save()
@@ -175,52 +177,6 @@ router.post('/updatePhone', async(req, res) => {
                 return res.status(401).send({error: err})
             }
         })
-        req.user = user
-    })
-})
-
-// add ability to update password
-// should require additional auth (aka old password) to do so
-router.post('/updateUserId', async(req, res) => {
-    const {authorization} = req.headers
-    // authorization == 'Bearer _________;
-    // need to string out 'Bearer' later
-    const {emailOrId, password, newUserId} = req.body
-
-    if (!authorization)
-        return res.status(401).send({error: loginErrorMessage})
-
-    const token = authorization.replace('Bearer ', '')
-    jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
-        
-        if (err) {
-            return res.status(401).send({error: loginErrorMessage})
-        }
-
-        const {userId} = payload
-        var user = await User.findById(userId, async function(err, doc) {
-            const userEmail = doc.email
-            const userId = doc.userId
-
-            try {
-                await doc.comparePassword(password).catch(function() {
-                    return res.status(400).send({error: invalidMessage})
-                })
-                if (userEmail !== emailOrId && userId !== emailOrId)
-                    return res.status(401).send({error: "Invalid account login credentials."})
-        
-                doc._doc = {...doc._doc, userId: newUserId, updatedDate: Date.now()}
-                doc.markModified('password')
-                await doc.save()
-
-                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-                res.send({token})
-            } catch (err) {
-                return res.status(401).send({error: err})
-            }
-        })
-        
-
         req.user = user
     })
 })
