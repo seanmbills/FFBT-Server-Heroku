@@ -12,7 +12,7 @@ router.post('/userUpdate', async(req, res) => {
     const {authorization} = req.headers
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
-    const {confirmPassword, birthDate, firstName, lastName, phoneNumber, zipCode} = req.body
+    const {firstName, lastName, zipCode} = req.body
 
     if (!authorization)
         return res.status(401).send({error: loginErrorMessage})
@@ -28,11 +28,7 @@ router.post('/userUpdate', async(req, res) => {
         var user = await User.findById(userId)
 
         try {
-            await user.comparePassword(confirmPassword).catch(function() {
-                return res.status(400).send({error: invalidMessage})
-            })
-
-            user._doc = {...user._doc, birthDate, zipCode, firstName, lastName, phoneNumber, updatedDate:Date.now()}
+            user._doc = {...user._doc, zipCode, firstName, lastName, updatedDate:Date.now()}
             
             const query = {_id: userId}
             await User.findOneAndUpdate(query, user, {upsert:false, runValidators:true}, function(err, doc){
