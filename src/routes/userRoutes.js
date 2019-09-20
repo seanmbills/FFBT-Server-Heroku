@@ -48,7 +48,7 @@ router.post('/userUpdate', async(req, res) => {
                 doc.markModified('updatedDate')
                 await doc.save()
     
-                const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
+                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
                 res.send({token})
             } catch (err) {
                 return res.status(401).send({error: err})
