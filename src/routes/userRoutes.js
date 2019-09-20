@@ -14,8 +14,10 @@ router.post('/userUpdate', async(req, res) => {
     // need to string out 'Bearer' later
     const {firstName, lastName, zipCode} = req.body
 
-    if (!authorization)
+    if (!authorization) {
+        console.log("No authorization token provided for user update.")
         return res.status(401).send({error: loginErrorMessage})
+    }
 
     const token = authorization.replace('Bearer ', '')
     jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
@@ -57,8 +59,10 @@ router.post('/updatePassword', async(req, res) => {
     // need to string out 'Bearer' later
     const {oldPassword, newPassword} = req.body
 
-    if (!authorization)
+    if (!authorization) {
+        console.log("No authorization token provided for update password.")
         return res.status(401).send({error: loginErrorMessage})
+    }
 
     const token = authorization.replace('Bearer ', '')
     jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
