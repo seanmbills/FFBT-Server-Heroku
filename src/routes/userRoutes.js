@@ -33,19 +33,29 @@ router.post('/userUpdate', async(req, res) => {
         var last = lastName === '' ? user._doc.lastName : lastName
         var zip = zipCode === null ? user._doc.zipCode : zipCode
 
-        try {
-            user._doc = {...user._doc, zipCode : zip, firstName: first , lastName: last, updatedDate:Date.now()}
-            
-            const query = {_id: userId}
-            await User.findOneAndUpdate(query, user, {upsert:false, runValidators:true}, function(err, doc){
-                if (err) return res.status(500).send({ error: 'failed to update' });
-            });
+        
 
-            const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-            res.send({token})
-        } catch (err) {
-            return res.status(401).send({error: err})
-        }
+        var user = await User.findById(userId, async function(err, doc) {
+            if (err) {
+                return res.status(400).send({error: "Couldn't find a user with that email address."})
+            }
+
+            try {
+                user._doc = {...user._doc, zipCode : zip, firstName: first , lastName: last, updatedDate:Date.now()}
+                if (firstName !== '')
+                    doc.markModified('firstName')
+                if (lastName !== '')
+                    doc.markModified('lastName')
+                if (zipCode !== null) 
+                    doc.markModified('zipCode')
+                await doc.save()
+    
+                const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
+                res.send({token})
+            } catch (err) {
+                return res.status(401).send({error: err})
+            }
+        })
 
         req.user = user
     })
