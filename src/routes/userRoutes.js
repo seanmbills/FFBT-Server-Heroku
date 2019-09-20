@@ -27,8 +27,12 @@ router.post('/userUpdate', async(req, res) => {
         const {userId} = payload
         var user = await User.findById(userId)
 
+        var first = firstName === '' ? user._doc.firstName : firstName
+        var last = lastName === '' ? user._doc.lastName : lastName
+        var zip = zipCode === null ? user._doc.zipCode : zipCode
+
         try {
-            user._doc = {...user._doc, zipCode, firstName, lastName, updatedDate:Date.now()}
+            user._doc = {...user._doc, zipCode : zip, firstName: first , lastName: last, updatedDate:Date.now()}
             
             const query = {_id: userId}
             await User.findOneAndUpdate(query, user, {upsert:false, runValidators:true}, function(err, doc){
