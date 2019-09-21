@@ -18,6 +18,7 @@ const phoneWithoutDashReges = /^\d{10}$/
 const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
 const urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/
 const amPmRegex = /[AaPp][Mm]/
+const priceRegex = /\${1,4}/
 
 
 const brewerySchema = new mongoose.Schema({
@@ -47,6 +48,16 @@ const brewerySchema = new mongoose.Schema({
                 },
                 message: props => `${props.value} is not a valid phone number!`
             },
+        }
+    },
+    price: {
+        type: String,
+        required: true,
+        validate: {
+            validator: function (v) {
+                return (v.length > 0 && v.length < 5 && priceRegex.test(v))
+            },
+            message: props => `${props.value} is not a valid price designation!`
         }
     },
     geoLocation: {
