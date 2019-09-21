@@ -46,7 +46,7 @@ const brewerySchema = new mongoose.Schema({
             }
         },
         zipCode: {
-            type: Number,
+            type: String,
             required: true,
             validate: {
                 validator: function(v) {
@@ -67,8 +67,16 @@ const brewerySchema = new mongoose.Schema({
         }
     },
     geoLocation: {
-        type: { type: String },
-        coordinates: []
+        // type: { type: String },
+        // coordinates: []
+        // coordinates: { type: [Number], index: '2dsphere'}
+        type: {
+            type: String, // Don't do `{ location: { type: String } }`
+            enum: ['Point'] // 'location.type' must be 'Point'
+        },
+        coordinates: {
+            type: [Number]
+        }
     },
     phoneNumber: {
         type: String,
@@ -100,6 +108,10 @@ const brewerySchema = new mongoose.Schema({
             },
             message: props => `${props.value} is not a valid URL!`
         }
+    },
+    creator: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     },
     businessHours: {
         Sunday: {
@@ -499,19 +511,25 @@ const brewerySchema = new mongoose.Schema({
     }
 })
 
-brewerySchema.index({ "geoLocation": "2dsphere" });
-
 brewerySchema.pre('save', async function(next) {
     const brewery = this
     const address = brewery.address.street + ", " + brewery.address.city + ", " + brewery.address.state + " " + brewery.address.zipCode
+    // console.log(address)
     try {
-        const coordinates = geocoder.geocode(address)
+        const coords = await geocoder.geocode(address)
+        // console.log(coords)
 
-        brewery.geoLocation.coordinates = [coordinates.longitude, coordinates.latitude]
+        brewery.geoLocation = {
+            type: "Point",
+            coordinates: [coords[0].longitude, coords[0].latitude]
+        }
+        next()
     } catch (err) {
         return res.status(400).send({error: "Invalid address provided for brewery location."})
     }
 })
+
+brewerySchema.index({ "geoLocation.coordinates": "2dsphere" });
 
 
 mongoose.model('Brewery', brewerySchema)
