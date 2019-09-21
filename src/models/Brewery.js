@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 const NodeGeocoder = require('node-geocoder')
 
-
 const options = {
     provider: 'mapquest',
   
@@ -19,6 +18,7 @@ const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
 const urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/
 const amPmRegex = /[AaPp][Mm]/
 const priceRegex = /\${1,4}/
+const stateRegex = /[A-Z][A-Z]/
 
 
 const brewerySchema = new mongoose.Schema({
@@ -37,7 +37,13 @@ const brewerySchema = new mongoose.Schema({
         },
         state: {
             type: String,
-            required: true
+            required: true,
+            validate: {
+                validator: function(v) {
+                    return stateRegex.test(v)
+                },
+                message: props => `${props.value} is not a valid state!`
+            }
         },
         zipCode: {
             type: Number,
@@ -496,7 +502,15 @@ const brewerySchema = new mongoose.Schema({
 brewerySchema.index({ "geoLocation": "2dsphere" });
 
 brewerySchema.pre('save', async function(next) {
-    await geocoder.geocode()
+    const brewery = this
+    const address = brewery.address.street + ", " + brewery.address.city + ", " + brewery.address.state + " " + brewery.address.zipCode
+    try {
+        const coordinates = geocoder.geocode(address)
+
+        brewery.geoLocation.coordinates = [coordinates.longitude, coordinates.latitude]
+    } catch (err) {
+        return res.status(400).send({error: "Invalid address provided for brewery location."})
+    }
 })
 
 
