@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const User = mongoose.model('User')
 const Brewery = mongoose.model('Brewery')
 const jwt = require('jsonwebtoken')
+const flat = require('flat')
 
 
 const router = express.Router()
@@ -95,35 +96,55 @@ router.get('/search', async(req, res) => {
         dollarSigns = ["$", "$$"]
     } else if (price === "$$$") {
         dollarSigns = ["$", "$$", "$$$"]
-    } else if (price === "$$$$") {
+    } else if (price === "$$$$" || price === null) {
         dollarSigns = ["$", "$$", "$$$", "$$$$"]
     } else {
         return res.status(401).send({error: "Invalid maximum price limiter."})
     }
 
     // parse filter critera into a MongoDB search 
-    const distanceFilter = {
-        $geoNear: {
-            near: {
-                type: "Point",
-                coordinates: [ longitude, latitude ]
-            },
-            $maxDistance: distance,
-            spherical: true,
-            distanceField: "distance",
-            distanceMultiplier: 0.000621371
-        }
-    } 
-
-    const priceFilter = {
+    const searchQuery = {
         price: {
             $in: dollarSigns
         }
     }
+
+    if (accommodationsSearch !== null) {
+        var temp = {"accommodations": accommodationsSearch}
+        flattenedAccommodations = flat(temp)
+        for (var accommodation in flattenedAccommodations) {
+            accommodationName = accommodation
+            accommodationValue = flattenedAccommodations[accommodationName]
+            searchQuery[accommodationName] = accommodationValue
+        }
+    }
+    if (dayAndTime !== null) {
+        var temp = {"businessHours": dayAndTime}
+        flattenedTime = flat(temp)
+        for (var time in flattenedTime) {
+            timeName = time
+            timeValue = flattenedTime[timeName]
+            searchQuery[timeName] = timeValue
+        }
+    }
+    console.log(searchQuery)
     
+    const filter = {
+            $geoNear: {
+                near: {
+                    type: "Point",
+                    coordinates: [ longitude, latitude ]
+                },
+                $maxDistance: distance,
+                spherical: true,
+                distanceField: "distance",
+                distanceMultiplier: 0.000621371,
+                query: searchQuery
+            }
+    } 
+
     // find all documents that match the provided filter criteria
-    // var documents = await Brewery.find(distanceFilter)
-    var documents = await Brewery.aggregate([distanceFilter])
+    var documents = await Brewery.aggregate([filter])
     if (!documents){
         return res.status(400).send({error: "Couldn't find any results for this search."})
     }
@@ -132,6 +153,7 @@ router.get('/search', async(req, res) => {
     documents.forEach(function(element) {
         results.push(
             {
+                breweryId: element._id,
                 name: element.name,
                 address: element.address,
                 price: element.price,
@@ -145,7 +167,9 @@ router.get('/search', async(req, res) => {
     //      need to be careful how much data we're trying to send
     //      back to the user as sending 2kb/document could lead to immense amounts
     //      of data being sent and very slow response times
-    return res.status(200).send(results)
+    return res.status(200).send(results.sort(function(element) {
+        return element.distance
+    }))
 })
 
 router.get(`/brewery`, async(req, res) => {
