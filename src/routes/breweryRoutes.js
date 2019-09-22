@@ -82,20 +82,82 @@ router.post('/updateBrewery', async(req, res) => {
 
 router.get('/search', async(req, res) => {
     // all the search criteria to filter on
-    const {} = req.body
+    const {latitude, longitude, zipCode, distance, price, accommodationsSearch, dayAndTime} = req.body
+
+    if ((!latitude || !longitude) && !zipCode) {
+        return res.status(400).send({error: "Must provide a location to search in."})
+    }
+
+    var dollarSigns = []
+    if (price === "$") {
+        dollarSigns = ["$"]
+    } else if (price === "$$") {
+        dollarSigns = ["$", "$$"]
+    } else if (price === "$$$") {
+        dollarSigns = ["$", "$$", "$$$"]
+    } else if (price === "$$$$") {
+        dollarSigns = ["$", "$$", "$$$", "$$$$"]
+    } else {
+        return res.status(401).send({error: "Invalid maximum price limiter."})
+    }
 
     // parse filter critera into a MongoDB search 
+    const distanceFilter = {
+        $geoNear: {
+            near: {
+                type: "Point",
+                coordinates: [ longitude, latitude ]
+            },
+            $maxDistance: distance,
+            spherical: true,
+            distanceField: "distance",
+            distanceMultiplier: 0.000621371
+        }
+    } 
 
+    const priceFilter = {
+        price: {
+            $in: dollarSigns
+        }
+    }
+    
+    // find all documents that match the provided filter criteria
+    // var documents = await Brewery.find(distanceFilter)
+    var documents = await Brewery.aggregate([distanceFilter])
+    if (!documents){
+        return res.status(400).send({error: "Couldn't find any results for this search."})
+    }
+
+    var results = []
+    documents.forEach(function(element) {
+        results.push(
+            {
+                name: element.name,
+                address: element.address,
+                price: element.price,
+                accommodations: element.accommodations,
+                distance: element.distance
+            }
+        )
+    })
     // return only certain information necessary for displaying
     // an individual location on the list/map view
     //      need to be careful how much data we're trying to send
     //      back to the user as sending 2kb/document could lead to immense amounts
     //      of data being sent and very slow response times
-
+    return res.status(200).send(results)
 })
 
-router.get(`/search/${id}`, async(req, res) => {
+router.get(`/brewery`, async(req, res) => {
     // get all of the information for a specific document in storage
+    const {breweryId} = req.body
+
+    const brewery = Brewery.findById(breweryId)
+    if (!brewery) {
+        return res.status(400).send({error: "Could not find the specified brewery location. Please try again."})
+    }
+
+    res.status(200).send(brewery)
 })
 
 

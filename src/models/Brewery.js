@@ -529,7 +529,7 @@ brewerySchema.pre('save', async function(next) {
     }
 })
 
-brewerySchema.index({ "geoLocation.coordinates": "2dsphere" });
+brewerySchema.index({ "geoLocation": "2dsphere" });
 
 
 mongoose.model('Brewery', brewerySchema)
