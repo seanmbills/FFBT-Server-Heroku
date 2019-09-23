@@ -38,7 +38,7 @@ router.post('/resetPassword', async(req, res) => {
     if (!newPassword || newPassword === '')
         return res.status(401).send({error: "Must provide a valid password."})
 
-    const user = await User.findOne({$or: [{'email': emailOrId}, {'userId': emailOrId}]})
+    var user = await User.findOne({$or: [{'email': emailOrId}, {'userId': emailOrId}]})
     if (!user) {
         return res.status(401).send({error: invalidMessage})
     }
@@ -52,9 +52,9 @@ router.post('/resetPassword', async(req, res) => {
         await token.compareToken(resetCode)
         
         try {
-            doc._doc = {...doc._doc, password: newPassword, updatedDate: Date.now()}
+            user._doc = {...user._doc, password: newPassword, updatedDate: Date.now()}
             doc.markModified('password')
-            await doc.save()
+            await user.save()
         } catch (err) {
             return res.status(401).send({error: err})
         }
