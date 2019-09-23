@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
 const NodeGeocoder = require('node-geocoder')
+const geoTz = require('geo-tz')
+const fuzzySearch = require('mongoose-fuzzy-searching')
 
 const options = {
     provider: 'mapquest',
@@ -64,6 +66,16 @@ const brewerySchema = new mongoose.Schema({
                 return (v.length > 0 && v.length < 5 && priceRegex.test(v))
             },
             message: props => `${props.value} is not a valid price designation!`
+        }
+    },
+    ratings: {
+        type: mongoose.Types.Decimal128,
+        required: true,
+        validate: {
+            validator: function(v) {
+                return v >= 0 && v <= 5
+            },
+            message: props => `${props.value} is an invalid rating!`
         }
     },
     geoLocation: {
@@ -518,11 +530,23 @@ brewerySchema.pre('save', async function(next) {
     try {
         const coords = await geocoder.geocode(address)
         // console.log(coords)
+        var lat = coords[0].latitude
+        var long = coords[0].longitude
+
+        if (!lat || !long)
+            return res.status(400).send({error: "Invalid address provided for brewery location."})
 
         brewery.geoLocation = {
             type: "Point",
-            coordinates: [coords[0].longitude, coords[0].latitude]
+            coordinates: [long, lat]
         }
+
+        // var zone = geoTz(lat, long)
+        // if (!zone) {
+        //     brewery.businessHours.timeZone = zone
+        //     brewery.alternativeKidFriendlyHours.timeZone = zone
+        // }
+        
         next()
     } catch (err) {
         return res.status(400).send({error: "Invalid address provided for brewery location."})
@@ -531,5 +555,6 @@ brewerySchema.pre('save', async function(next) {
 
 brewerySchema.index({ "geoLocation": "2dsphere" });
 
+brewerySchema.plugin(fuzzySearch, {fields: ['name']});
 
 mongoose.model('Brewery', brewerySchema)

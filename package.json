@@ -21,9 +21,11 @@
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
     "flat": "^4.1.0",
+    "geo-tz": "^5.0.5",
     "jsonwebtoken": "^8.5.1",
     "mongo-dot-notation": "^1.2.0",
     "mongoose": "^5.6.11",
+    "mongoose-fuzzy-searching": "^1.1.8",
     "node-geocoder": "^3.24.0",
     "nodemailer": "^6.3.0"
   }
