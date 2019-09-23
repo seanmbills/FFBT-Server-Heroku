@@ -52,8 +52,6 @@ router.post('/resetPassword', async(req, res) => {
         await token.compareToken(resetCode)
         
         try {
-            console.log(user)
-            console.log(user._doc)
             user._doc = {...user._doc, password: newPassword, updatedDate: Date.now()}
             user.markModified('password')
             await user.save()
