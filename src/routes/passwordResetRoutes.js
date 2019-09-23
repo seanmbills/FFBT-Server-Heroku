@@ -55,7 +55,7 @@ router.post('/resetPassword', async(req, res) => {
             console.log(user)
             console.log(user._doc)
             user._doc = {...user._doc, password: newPassword, updatedDate: Date.now()}
-            doc.markModified('password')
+            user.markModified('password')
             await user.save()
         } catch (err) {
             return res.status(401).send({error: err})
