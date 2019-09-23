@@ -35,7 +35,7 @@ router.post('/createBrewery', async(req, res) => {
             res.status(401).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
 
         try {
-            const brewery = new Brewery({name, address, price, phoneNumber, email, website, businessHours, alternativeKidFriendlyHours, accommodations, creator: userId})
+            const brewery = new Brewery({name, address, price, phoneNumber, email, website, businessHours, alternativeKidFriendlyHours, accommodations, creator: userId, ratings: 0.0})
             
             await brewery.save()
 
@@ -83,20 +83,20 @@ router.post('/updateBrewery', async(req, res) => {
 
 router.get('/search', async(req, res) => {
     // all the search criteria to filter on
-    const {latitude, longitude, zipCode, distance, price, accommodationsSearch, dayAndTime} = req.body
+    const {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, stillOpen, minimumRating} = req.body
 
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
     }
 
     var dollarSigns = []
-    if (price === "$") {
+    if (maximumPrice === "$") {
         dollarSigns = ["$"]
-    } else if (price === "$$") {
+    } else if (maximumPrice === "$$") {
         dollarSigns = ["$", "$$"]
-    } else if (price === "$$$") {
+    } else if (maximumPrice === "$$$") {
         dollarSigns = ["$", "$$", "$$$"]
-    } else if (price === "$$$$" || price === null) {
+    } else if (maximumPrice === "$$$$" || price === null) {
         dollarSigns = ["$", "$$", "$$$", "$$$$"]
     } else {
         return res.status(401).send({error: "Invalid maximum price limiter."})
@@ -106,6 +106,9 @@ router.get('/search', async(req, res) => {
     const searchQuery = {
         price: {
             $in: dollarSigns
+        },
+        ratings: {
+            $gte: minimumRating
         }
     }
 
@@ -118,16 +121,7 @@ router.get('/search', async(req, res) => {
             searchQuery[accommodationName] = accommodationValue
         }
     }
-    if (dayAndTime !== null) {
-        var temp = {"businessHours": dayAndTime}
-        flattenedTime = flat(temp)
-        for (var time in flattenedTime) {
-            timeName = time
-            timeValue = flattenedTime[timeName]
-            searchQuery[timeName] = timeValue
-        }
-    }
-    console.log(searchQuery)
+    
     
     const filter = {
             $geoNear: {
@@ -142,6 +136,11 @@ router.get('/search', async(req, res) => {
                 query: searchQuery
             }
     } 
+
+    if (name) {
+        var docs = Brewery.fuzzySearch(name)
+        console.log(docs)
+    }
 
     // find all documents that match the provided filter criteria
     var documents = await Brewery.aggregate([filter])
