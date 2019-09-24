@@ -4,6 +4,8 @@ const User = mongoose.model('User')
 const Brewery = mongoose.model('Brewery')
 const jwt = require('jsonwebtoken')
 const flat = require('flat')
+// const fuzzy = require('fuzzy-search')
+const fuzzy = require('fuzzball')
 
 
 const router = express.Router()
@@ -135,17 +137,32 @@ router.get('/search', async(req, res) => {
                 distanceMultiplier: 0.000621371,
                 query: searchQuery
             }
-    } 
-
-    if (name) {
-        var docs = Brewery.fuzzySearch(name)
-        console.log(docs)
     }
 
     // find all documents that match the provided filter criteria
     var documents = await Brewery.aggregate([filter])
     if (!documents){
         return res.status(400).send({error: "Couldn't find any results for this search."})
+    }
+
+    var documentsWithFuzzySearchName = []
+    if (name) {
+        const options = {
+            scorer: fuzzy.partial_token_set_ratio, // Any function that takes two values and returns a score, default: ratio
+            processor: choice => choice.name,  // Takes choice object, returns string, default: no processor. Must supply if choices are not already strings.
+            // limit: 2, // Max number of top results to return, default: no limit / 0.
+            cutoff: 70, // Lowest score to return, default: 0
+            unsorted: true, // Results won't be sorted if true, default: false. If true limit will be ignored.
+            returnObjects: true
+        }
+        documentsWithFuzzySearchName = fuzzy.extract(name, documents, options)
+    }
+
+    if (documentsWithFuzzySearchName) {
+        documents = []
+        documentsWithFuzzySearchName.forEach(function(element) {
+            documents.push(element.choice)
+        })
     }
 
     var results = []

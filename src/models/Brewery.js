@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 const NodeGeocoder = require('node-geocoder')
 const geoTz = require('geo-tz')
-const fuzzySearch = require('mongoose-fuzzy-searching')
 
 const options = {
     provider: 'mapquest',
@@ -27,6 +26,9 @@ const brewerySchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
+    },
+    nGrams: {
+        type: [String]
     },
     address: {
         street: {
@@ -526,8 +528,10 @@ const brewerySchema = new mongoose.Schema({
 brewerySchema.pre('save', async function(next) {
     const brewery = this
     const address = brewery.address.street + ", " + brewery.address.city + ", " + brewery.address.state + " " + brewery.address.zipCode
-    // console.log(address)
+    
     try {
+        // convert address to lat/long coordinates for using MongoDB
+        // GeoJSON searches later on
         const coords = await geocoder.geocode(address)
         // console.log(coords)
         var lat = coords[0].latitude
@@ -541,6 +545,9 @@ brewerySchema.pre('save', async function(next) {
             coordinates: [long, lat]
         }
 
+        // get the timeZone of the given coordinates for use
+        // when trying to store time objects so we can convert to UTC
+        // time for consistent searching
         // var zone = geoTz(lat, long)
         // if (!zone) {
         //     brewery.businessHours.timeZone = zone
@@ -555,6 +562,5 @@ brewerySchema.pre('save', async function(next) {
 
 brewerySchema.index({ "geoLocation": "2dsphere" });
 
-brewerySchema.plugin(fuzzySearch, {fields: ['name']});
 
 mongoose.model('Brewery', brewerySchema)
