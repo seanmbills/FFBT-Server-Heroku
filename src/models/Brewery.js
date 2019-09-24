@@ -18,7 +18,6 @@ const phoneWithoutDashReges = /^\d{10}$/
 const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
 const urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/
 const amPmRegex = /[AaPp][Mm]/
-const priceRegex = /\${1,4}/
 const stateRegex = /[A-Z][A-Z]/
 
 
@@ -61,11 +60,11 @@ const brewerySchema = new mongoose.Schema({
         }
     },
     price: {
-        type: String,
+        type: Number,
         required: true,
         validate: {
             validator: function (v) {
-                return (v.length > 0 && v.length < 5 && priceRegex.test(v))
+                return (v >= 0 && v <= 4)
             },
             message: props => `${props.value} is not a valid price designation!`
         }
@@ -128,371 +127,245 @@ const brewerySchema = new mongoose.Schema({
         ref: 'User'
     },
     businessHours: {
-        Sunday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        sun: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Monday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        mon: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Tuesday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        tue: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Wednesday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        wed: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Thursday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        thu: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Friday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        fri: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Saturday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        sat: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         }
     },
     alternativeKidFriendlyHours: {
-        Sunday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        sun: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Monday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        mon: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Tuesday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        tue: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Wednesday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        wed: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Thursday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        thu: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Friday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        fri: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         },
-        Saturday: {
-            openTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+        sat: {
+            string: {
+                type: String,
+                validate: {
+                    validator: function (v) {
+                        return timeStringRegex.text(v)
+                    },
+                    message: props => `${props.value} is not a valid time!`
                 }
             },
-            closeTime: {
-                time: Number,
-                designator: {
-                    type: String,
-                    validate: {
-                        validator: function(v) {
-                            return amPmRegex.test(v)
-                        },
-                        message: props => `${props.value} is not a valid time!`
-                    }
+            openTimeRanges: [
+                {
+                    open: Number,
+                    close: Number
                 }
-            }
+            ]
         }
     },
     comments: [

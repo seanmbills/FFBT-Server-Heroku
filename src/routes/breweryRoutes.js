@@ -85,38 +85,32 @@ router.post('/updateBrewery', async(req, res) => {
 
 router.get('/search', async(req, res) => {
     // all the search criteria to filter on
-    const {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, stillOpen, minimumRating} = req.body
+    const {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, minimumRating} = req.body
 
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
     }
 
-    var dollarSigns = []
-    if (maximumPrice === "$") {
-        dollarSigns = ["$"]
-    } else if (maximumPrice === "$$") {
-        dollarSigns = ["$", "$$"]
-    } else if (maximumPrice === "$$$") {
-        dollarSigns = ["$", "$$", "$$$"]
-    } else if (maximumPrice === "$$$$" || price === null) {
-        dollarSigns = ["$", "$$", "$$$", "$$$$"]
-    } else {
-        return res.status(401).send({error: "Invalid maximum price limiter."})
-    }
-
-    // parse filter critera into a MongoDB search 
+    // parse price and ratings critera into the start of a MongoDB search 
     const searchQuery = {
         price: {
-            $in: dollarSigns
+            $lte: maximumPrice
         },
         ratings: {
             $gte: minimumRating
         }
     }
 
+    // if we're trying to search on certain criteria, we'll add them to the 
+    // searchQuery
     if (accommodationsSearch !== null) {
+        // need to add an accommodations tag so that when we flatten
+        // out the object MongoDB can reference it correctly
         var temp = {"accommodations": accommodationsSearch}
+        // flatten out the object
         flattenedAccommodations = flat(temp)
+        // iterate over all of the flattened accommodations tags
+        // and add the key/value pair to the query object
         for (var accommodation in flattenedAccommodations) {
             accommodationName = accommodation
             accommodationValue = flattenedAccommodations[accommodationName]
@@ -124,17 +118,24 @@ router.get('/search', async(req, res) => {
         }
     }
     
-    
+    // create the filter object that we'll use to aggregate our
+    // MongoDB search on
     const filter = {
             $geoNear: {
+                // provide the coordinates to do a geosearch near
                 near: {
                     type: "Point",
                     coordinates: [ longitude, latitude ]
                 },
                 $maxDistance: distance,
                 spherical: true,
+                // we'll tack the "distance" field on to our aggregate
+                // results
                 distanceField: "distance",
+                // multiply to convert the default MongoDB meters to miles
+                // (the standard for our application)
                 distanceMultiplier: 0.000621371,
+                // specify the query for other objects that we want to use
                 query: searchQuery
             }
     }
@@ -142,9 +143,14 @@ router.get('/search', async(req, res) => {
     // find all documents that match the provided filter criteria
     var documents = await Brewery.aggregate([filter])
     if (!documents){
-        return res.status(400).send({error: "Couldn't find any results for this search."})
+        // if we don't find any documents, we should provide a 200 response
+        // to say that the search was good but that there weren't any 
+        // results that came back
+        return res.status(200).send({count: 0, response: null})
     }
 
+    // filter the search results even further by using a fuzzy matching algorithm
+    // to compare against the name provided
     var documentsWithFuzzySearchName = []
     if (name) {
         const options = {
@@ -158,6 +164,7 @@ router.get('/search', async(req, res) => {
         documentsWithFuzzySearchName = fuzzy.extract(name, documents, options)
     }
 
+    // if we had fuzzy match results, update the documents to reference them
     if (documentsWithFuzzySearchName) {
         documents = []
         documentsWithFuzzySearchName.forEach(function(element) {
@@ -165,6 +172,8 @@ router.get('/search', async(req, res) => {
         })
     }
 
+    // set the results to return to be the necessary information for each document
+    // that we need to display in the frontend
     var results = []
     documents.forEach(function(element) {
         results.push(
@@ -183,9 +192,10 @@ router.get('/search', async(req, res) => {
     //      need to be careful how much data we're trying to send
     //      back to the user as sending 2kb/document could lead to immense amounts
     //      of data being sent and very slow response times
-    return res.status(200).send(results.sort(function(element) {
-        return element.distance
-    }))
+    return res.status(200).send({count: results.length, response: results.sort(function(element) {
+            return element.distance
+        })
+    })
 })
 
 router.get(`/brewery`, async(req, res) => {
@@ -200,5 +210,5 @@ router.get(`/brewery`, async(req, res) => {
     res.status(200).send(brewery)
 })
 
-
+// export all of the routes for the brewery routes object
 module.exports = router
