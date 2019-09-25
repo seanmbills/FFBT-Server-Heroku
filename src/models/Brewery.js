@@ -383,6 +383,44 @@ brewerySchema.pre('save', async function(next) {
     } catch (err) {
         next(new Error("Invalid open/close times provided. Please provide valid open/close times."))
     } 
+
+    // do the same thing as above but with the "alternateKidFriendlyHours" field
+    try {
+        // when user makes request to create a brewery, all they provide is the open times
+        //      in a string format, i.e. '8:30AM - 10:00PM'
+        // we need to convert these times into their seconds since the start of the week
+        //      for later checking if a location is still open when a user makes a search request
+        if (brewery.alternativeKidFriendlyHours.sun && brewery.alternativeKidFriendlyHours.sun !== "") {
+            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.sun, zone, 0)
+            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+        }
+        if (brewery.alternativeKidFriendlyHours.mon && brewery.alternativeKidFriendlyHours.mon !== "") {
+            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.mon, zone, 1)
+            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+        }
+        if (brewery.alternativeKidFriendlyHours.tue && brewery.alternativeKidFriendlyHours.tue !== "") {
+            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.tue, zone, 2)
+            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+        }
+        if (brewery.alternativeKidFriendlyHours.wed && brewery.alternativeKidFriendlyHours.wed !== "") {
+            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.wed, zone, 3)
+            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+        }
+        if (brewery.alternativeKidFriendlyHours.thu && brewery.alternativeKidFriendlyHours.thu !== "") {
+            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.thu, zone, 4)
+            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+        }
+        if (brewery.alternativeKidFriendlyHours.fri && brewery.alternativeKidFriendlyHours.fri !== "") {
+            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.fri, zone, 5)
+            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+        }
+        if (brewery.alternativeKidFriendlyHours.sat && brewery.alternativeKidFriendlyHours.sat !== "") {
+            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.sat, zone, 6)
+            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+        }
+    } catch (err) {
+        next(new Error("Invalid family friendly open/close times provided. Please provide valid open/close times."))
+    } 
     
     
     next()

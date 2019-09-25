@@ -89,7 +89,7 @@ router.post('/updateBrewery', async(req, res) => {
 
 router.get('/search', async(req, res) => {
     // all the search criteria to filter on
-    const {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, minimumRating} = req.body
+    const {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating} = req.body
 
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
@@ -145,17 +145,19 @@ router.get('/search', async(req, res) => {
     }
 
     var aggregate = [filter]
+    var currMoment = moment().utc()
+    var day = currMoment.day()
 
+    // calculate the difference in seconds between start of the week (midnight sunday) and 
+    // the time we're trying to store
+    // need the (86400 * day) to add in all of the previous days in the week
+    var currSeconds = currMoment.diff(currMoment.clone().startOf('day'), 'seconds') + (86400 * day)
+
+    // if the user wants to find locations that are open at the moment, we need to add
+    // a filter option to our aggregate command (see below) that will check through the
+    // stored businessHours and filter out locations that are closed
     if (openNow) {
-        var currMoment = moment().utc()
-        var day = currMoment.day()
-
-        // calculate the difference in seconds between start of the week (midnight sunday) and 
-        // the time we're trying to store
-        // need the (86400 * day) to add in all of the previous days in the week
-        var currSeconds = currMoment.diff(currMoment.clone().startOf('day'), 'seconds') + (86400 * day)
-        aggregate = [
-            filter,
+        aggregate.push(
             {"$unwind" : "$businessHours.openTimes"},
             {"$match" :
                 {
@@ -167,7 +169,25 @@ router.get('/search', async(req, res) => {
                     }
                 }
             }
-        ]
+        )
+    }
+
+    // same deal with if a user wants to find a place that is kidFriendly 
+    // at the current moment
+    if (kidFriendlyNow) {
+        aggregate.push(
+            {"$unwind" : "$alternativeKidFriendlyHours.openTimes"},
+            {"$match" :
+                {
+                    "alternativeKidFriendlyHours.openTimes.open" : {
+                        "$lte": currSeconds
+                    },
+                    "alternativeKidFriendlyHours.openTimes.close" : {
+                        "$gte": currSeconds
+                    }
+                }
+            }
+        ) 
     }
 
     var documents = await Brewery.aggregate(aggregate)
