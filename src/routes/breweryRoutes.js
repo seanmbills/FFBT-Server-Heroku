@@ -4,8 +4,9 @@ const User = mongoose.model('User')
 const Brewery = mongoose.model('Brewery')
 const jwt = require('jsonwebtoken')
 const flat = require('flat')
-// const fuzzy = require('fuzzy-search')
 const fuzzy = require('fuzzball')
+const moment = require('moment')
+const momentTz = require('moment-timezone')
 
 
 const router = express.Router()
@@ -21,7 +22,7 @@ router.post('/createBrewery', async(req, res) => {
         return res.status(401).send({error: loginErrorMessage})
     }
 
-    const {name, address, price, phoneNumber, email, website, businessHours, alternativeKidFriendlyHours, accommodations} = req.body
+    const {name, address, price, phoneNumber, email, website, businessHours, kidHoursSameAsNormal, alternativeKidFriendlyHours, accommodations} = req.body
 
     const token = authorization.replace('Bearer ', '')
     jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
@@ -37,6 +38,9 @@ router.post('/createBrewery', async(req, res) => {
             res.status(401).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
 
         try {
+            if (kidHoursSameAsNormal) {
+                alternativeKidFriendlyHours = businessHours
+            }
             const brewery = new Brewery({name, address, price, phoneNumber, email, website, businessHours, alternativeKidFriendlyHours, accommodations, creator: userId, ratings: 0.0})
             
             await brewery.save()
@@ -121,27 +125,52 @@ router.get('/search', async(req, res) => {
     // create the filter object that we'll use to aggregate our
     // MongoDB search on
     const filter = {
-            $geoNear: {
-                // provide the coordinates to do a geosearch near
-                near: {
-                    type: "Point",
-                    coordinates: [ longitude, latitude ]
-                },
-                $maxDistance: distance,
-                spherical: true,
-                // we'll tack the "distance" field on to our aggregate
-                // results
-                distanceField: "distance",
-                // multiply to convert the default MongoDB meters to miles
-                // (the standard for our application)
-                distanceMultiplier: 0.000621371,
-                // specify the query for other objects that we want to use
-                query: searchQuery
-            }
+        $geoNear: {
+            // provide the coordinates to do a geosearch near
+            near: {
+                type: "Point",
+                coordinates: [ longitude, latitude ]
+            },
+            $maxDistance: distance,
+            spherical: true,
+            // we'll tack the "distance" field on to our aggregate
+            // results
+            distanceField: "distance",
+            // multiply to convert the default MongoDB meters to miles
+            // (the standard for our application)
+            distanceMultiplier: 0.000621371,
+            // specify the query for other objects that we want to use
+            query: searchQuery
+        }
     }
 
-    // find all documents that match the provided filter criteria
-    var documents = await Brewery.aggregate([filter])
+    var aggregate = [filter]
+
+    if (openNow) {
+        var currMoment = moment().utc()
+        var day = currMoment.day()
+
+        // calculate the difference in seconds between start of the week (midnight sunday) and 
+        // the time we're trying to store
+        // need the (86400 * day) to add in all of the previous days in the week
+        var currSeconds = currMoment.diff(currMoment.clone().startOf('day'), 'seconds') + (86400 * day)
+        aggregate = [
+            filter,
+            {"$unwind" : "$businessHours.openTimes"},
+            {"$match" :
+                {
+                    "businessHours.openTimes.open" : {
+                        "$lte": currSeconds
+                    },
+                    "businessHours.openTimes.close" : {
+                        "$gte": currSeconds
+                    }
+                }
+            }
+        ]
+    }
+
+    var documents = await Brewery.aggregate(aggregate)
     if (!documents){
         // if we don't find any documents, we should provide a 200 response
         // to say that the search was good but that there weren't any 
@@ -187,6 +216,7 @@ router.get('/search', async(req, res) => {
             }
         )
     })
+
     // return only certain information necessary for displaying
     // an individual location on the list/map view
     //      need to be careful how much data we're trying to send
