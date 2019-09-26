@@ -33,15 +33,19 @@ router.post('/createBrewery', async(req, res) => {
 
         const {userId} = payload
 
-        const user = User.findById({userId})
+        const user = await User.findById(userId)
         if (!user)
             res.status(401).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
 
         try {
+            var kidHours = {}
             if (kidHoursSameAsNormal) {
-                alternativeKidFriendlyHours = businessHours
+                kidHours = businessHours
+            } else {
+                kidHours = alternativeKidFriendlyHours
             }
-            const brewery = new Brewery({name, address, price, phoneNumber, email, website, businessHours, alternativeKidFriendlyHours, accommodations, creator: userId, ratings: 0.0})
+            var brew = {name, address, price, phoneNumber, email, website, businessHours, alternativeKidFriendlyHours: kidHours, accommodations, creator: userId, ratings: 0.0}
+            const brewery = new Brewery(brew)
             
             await brewery.save()
 
@@ -61,7 +65,7 @@ router.post('/updateBrewery', async(req, res) => {
     }
 
     // need to include all possible update-able portions of a location
-    const {} = req.body
+    const {breweryId, newName, newAddress, newPrice, newPhoneNumber, newEmail, newWebsite, newOwner, newBusinessHours, newKidFriendlyHours, newAccommodations} = req.body
 
     const token = authorization.replace('Bearer ', '')
     jwt.verify(token, process.env.MONGO_SECRET_KEY, async(err, payload) => {
@@ -70,20 +74,108 @@ router.post('/updateBrewery', async(req, res) => {
         }
 
         const {userId} = payload
-        const brewery = Brewery.findOne({creator: userId}, async function(err, doc) {
+        const brewery = await Brewery.findOne({_id: breweryId}, async function(err, doc) {
             if (err) {
                 return res.status(400).send({error: "Couldn't find any breweries associated with this user."})
             }
 
+            if (String(userId).trim() !== String(doc.creator).trim()) {
+                return res.status(400).send({error: "This user is not authorized to update this location."})
+            }
+
             // check all elements for empty so we can reassign changed ones
-
-
             try {
                 doc._doc = {...doc._doc}
+
+                if (newName) {
+                    doc._doc = {...doc._doc, name: newName}
+                    doc.markModified('name')
+                }
+                if (newAddress) {
+                    doc._doc = {...doc._doc, address: newAddress}
+                    doc.markModified('address')
+                }
+                if (newPrice) {
+                    doc._doc = {...doc._doc, price: newPrice}
+                    doc.markModified('price')
+                }
+                if (newPhoneNumber) {
+                    doc._doc = {...doc._doc, phoneNumber: newPhoneNumber}
+                    doc.markModified('phoneNumber')
+                }
+                if (newEmail) {
+                    doc._doc = {...doc._doc, email: newEmail}
+                    doc.markModified('email')
+                }
+                if (newWebsite) {
+                    doc._doc = {...doc._doc, website: newWebsite}
+                    doc.markModified('website')
+                }
+                if (newOwner) {
+                    try {
+                        var user = await User.findOne({email: newOwner})
+                        if (!user) {
+                            return res.status(400).send({error: "Couldn't find an account connected to the specified new owner's email."})
+                        }
+                        doc._doc = {...doc._doc, creator: user._id}
+                        doc.markModified('creator')
+                    } catch(err) {
+                        return res.status(401).send({error: err})
+                    }
+                }
+                if (newBusinessHours) {
+                    newBusinessHours["openTimes"] = []
+                    newBusinessHours["timeZone"] = ""
+                    doc._doc = {...doc._doc, businessHours: newBusinessHours}
+                    doc.markModified('businessHours')
+                }
+                if (newKidFriendlyHours) {
+                    newKidFriendlyHours["openTimes"] = []
+                    newKidFriendlyHours["timeZone"] = ""
+                    doc._doc = {...doc._doc, alternativeKidFriendlyHours: newKidFriendlyHours}
+                    doc.markModified('alternativeKidFriendlyHours')
+                }
+                if (newAccommodations) {
+                    doc._doc = {...doc._doc, accommodations: newAccommodations}
+                    doc.markModified('accommodations')
+                }
+
+                await doc.save()
+                return res.status(200).send({response: `Successfully updated the location ${doc.name}`})
             } catch (err) {
-                return res.status(401).send({error: err})
+                return res.status(401).send({error: "Experienced an error while trying to update a brewery location."})
             }
         })
+    })
+})
+
+router.get('/getOwnedBreweries', async(req, res) => {
+    const {authorization} = req.headers
+
+    const token = authorization.replace('Bearer ', '')
+    jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
+        
+        if (err) {
+            return res.status(401).send({error: loginErrorMessage})
+        }
+
+        try {
+            const {userId} = payload
+            var breweries = await Brewery.find({creator: userId})
+
+            if (!breweries) {
+                return res.status(200).send({count: 0, error: "Could not find any breweries associated with this account."})
+            }
+
+            var breweryNamesAndIds = []
+            breweries.forEach(function(element) {
+                breweryNamesAndIds.push({name: element.name, id: element._id})
+            })
+            
+            res.status(200).send({count: breweryNamesAndIds.length, names: breweryNamesAndIds})
+        } catch(err) {
+            res.status(400).send({count: 0, error: "Could not find any breweries associated with this user."})
+        }
     })
 })
 
@@ -252,7 +344,7 @@ router.get(`/brewery`, async(req, res) => {
     // get all of the information for a specific document in storage
     const {breweryId} = req.body
 
-    const brewery = Brewery.findById(breweryId)
+    const brewery = await Brewery.findById(breweryId)
     if (!brewery) {
         return res.status(400).send({error: "Could not find the specified brewery location. Please try again."})
     }

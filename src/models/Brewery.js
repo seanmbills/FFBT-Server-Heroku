@@ -52,7 +52,7 @@ const brewerySchema = new mongoose.Schema({
                 validator: function(v) {
                     return zipCodeRegex.test(v);
                 },
-                message: props => `${props.value} is not a valid phone number!`
+                message: props => `${props.value} is not a valid zip code!`
             },
         }
     },
@@ -231,6 +231,7 @@ function getOpenCloseSeconds(timeString, timeZone, dayOfWeek) {
     var open = openClose[0]
     var close = openClose[1]
 
+
     // split the open time into its component parts
     var openTime = open.substring(0, open.length - 2) 
     var openAmPm = open.substring(open.length - 2)
@@ -320,8 +321,9 @@ brewerySchema.pre('save', async function(next) {
         lat = coords[0].latitude
         long = coords[0].longitude
 
-        if (!lat || !long)
+        if (!lat || !long) {
             next(new Error("Invalid address provided for brewery location."))
+        }
 
         brewery.geoLocation = {
             type: "Point",
@@ -347,80 +349,99 @@ brewerySchema.pre('save', async function(next) {
         next(new Error("No timezone for this location could be determined. Please try again."))
     }
 
-    try {
-        // when user makes request to create a brewery, all they provide is the open times
-        //      in a string format, i.e. '8:30AM - 10:00PM'
-        // we need to convert these times into their seconds since the start of the week
-        //      for later checking if a location is still open when a user makes a search request
-        if (brewery.businessHours.sun && brewery.businessHours.sun !== "") {
-            var openClose = getOpenCloseSeconds(brewery.businessHours.sun, zone, 0)
-            brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
+    if (brewery.isModified('businessHours')) {
+        try {
+            // when user makes request to create a brewery, all they provide is the open times
+            //      in a string format, i.e. '8:30AM - 10:00PM'
+            // we need to convert these times into their seconds since the start of the week
+            //      for later checking if a location is still open when a user makes a search request
+            if (brewery.businessHours.sun && brewery.businessHours.sun !== "") {
+                var openClose = getOpenCloseSeconds(brewery.businessHours.sun, zone, 0)
+                brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.businessHours.sun = brewery.businessHours.sun.replace(/:00/g, '')
+            }
+            if (brewery.businessHours.mon && brewery.businessHours.mon !== "") {
+                var openClose = getOpenCloseSeconds(brewery.businessHours.mon, zone, 1)
+                brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.businessHours.mon = brewery.businessHours.mon.replace(/:00/g, "")
+            }
+            if (brewery.businessHours.tue && brewery.businessHours.tue !== "") {
+                var openClose = getOpenCloseSeconds(brewery.businessHours.tue, zone, 2)
+                brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.businessHours.tue = brewery.businessHours.tue.replace(/:00/g, "")
+            }
+            if (brewery.businessHours.wed && brewery.businessHours.wed !== "") {
+                var openClose = getOpenCloseSeconds(brewery.businessHours.wed, zone, 3)
+                brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.businessHours.wed = brewery.businessHours.wed.replace(/:00/g, "")
+            }
+            if (brewery.businessHours.thu && brewery.businessHours.thu !== "") {
+                var openClose = getOpenCloseSeconds(brewery.businessHours.thu, zone, 4)
+                brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.businessHours.thu = brewery.businessHours.thu.replace(/:00/g, "")
+            }
+            if (brewery.businessHours.fri && brewery.businessHours.fri !== "") {
+                var openClose = getOpenCloseSeconds(brewery.businessHours.fri, zone, 5)
+                brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.businessHours.fri = brewery.businessHours.fri.replace(/:00/g, "")
+            }
+            if (brewery.businessHours.sat && brewery.businessHours.sat !== "") {
+                var openClose = getOpenCloseSeconds(brewery.businessHours.sat, zone, 6)
+                brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.businessHours.sat = brewery.businessHours.sat.replace(/:00/g, "")
+            }
+        } catch (err) {
+            console.log("Invalid open/close times provided.")
+            next(new Error("Invalid open/close times provided. Please provide valid open/close times."))
         }
-        if (brewery.businessHours.mon && brewery.businessHours.mon !== "") {
-            var openClose = getOpenCloseSeconds(brewery.businessHours.mon, zone, 1)
-            brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.businessHours.tue && brewery.businessHours.tue !== "") {
-            var openClose = getOpenCloseSeconds(brewery.businessHours.tue, zone, 2)
-            brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.businessHours.wed && brewery.businessHours.wed !== "") {
-            var openClose = getOpenCloseSeconds(brewery.businessHours.wed, zone, 3)
-            brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.businessHours.thu && brewery.businessHours.thu !== "") {
-            var openClose = getOpenCloseSeconds(brewery.businessHours.thu, zone, 4)
-            brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.businessHours.fri && brewery.businessHours.fri !== "") {
-            var openClose = getOpenCloseSeconds(brewery.businessHours.fri, zone, 5)
-            brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.businessHours.sat && brewery.businessHours.sat !== "") {
-            var openClose = getOpenCloseSeconds(brewery.businessHours.sat, zone, 6)
-            brewery.businessHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-    } catch (err) {
-        next(new Error("Invalid open/close times provided. Please provide valid open/close times."))
-    } 
+    }
 
     // do the same thing as above but with the "alternateKidFriendlyHours" field
-    try {
-        // when user makes request to create a brewery, all they provide is the open times
-        //      in a string format, i.e. '8:30AM - 10:00PM'
-        // we need to convert these times into their seconds since the start of the week
-        //      for later checking if a location is still open when a user makes a search request
-        if (brewery.alternativeKidFriendlyHours.sun && brewery.alternativeKidFriendlyHours.sun !== "") {
-            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.sun, zone, 0)
-            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.alternativeKidFriendlyHours.mon && brewery.alternativeKidFriendlyHours.mon !== "") {
-            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.mon, zone, 1)
-            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.alternativeKidFriendlyHours.tue && brewery.alternativeKidFriendlyHours.tue !== "") {
-            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.tue, zone, 2)
-            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.alternativeKidFriendlyHours.wed && brewery.alternativeKidFriendlyHours.wed !== "") {
-            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.wed, zone, 3)
-            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.alternativeKidFriendlyHours.thu && brewery.alternativeKidFriendlyHours.thu !== "") {
-            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.thu, zone, 4)
-            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.alternativeKidFriendlyHours.fri && brewery.alternativeKidFriendlyHours.fri !== "") {
-            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.fri, zone, 5)
-            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-        if (brewery.alternativeKidFriendlyHours.sat && brewery.alternativeKidFriendlyHours.sat !== "") {
-            var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.sat, zone, 6)
-            brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
-        }
-    } catch (err) {
-        next(new Error("Invalid family friendly open/close times provided. Please provide valid open/close times."))
-    } 
+    if (brewery.isModified('alternativeKidFriendlyHours'))
+        try {
+            // when user makes request to create a brewery, all they provide is the open times
+            //      in a string format, i.e. '8:30AM - 10:00PM'
+            // we need to convert these times into their seconds since the start of the week
+            //      for later checking if a location is still open when a user makes a search request
+            if (brewery.alternativeKidFriendlyHours.sun && brewery.alternativeKidFriendlyHours.sun !== "") {
+                var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.sun, zone, 0)
+                brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.alternativeKidFriendlyHours.sun = brewery.alternativeKidFriendlyHours.sun.replace(/:00/g, "")
+            }
+            if (brewery.alternativeKidFriendlyHours.mon && brewery.alternativeKidFriendlyHours.mon !== "") {
+                var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.mon, zone, 1)
+                brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.alternativeKidFriendlyHours.mon = brewery.alternativeKidFriendlyHours.mon.replace(/:00/g, "")
+            }
+            if (brewery.alternativeKidFriendlyHours.tue && brewery.alternativeKidFriendlyHours.tue !== "") {
+                var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.tue, zone, 2)
+                brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.alternativeKidFriendlyHours.tue = brewery.alternativeKidFriendlyHours.tue.replace(/:00/g, "")
+            }
+            if (brewery.alternativeKidFriendlyHours.wed && brewery.alternativeKidFriendlyHours.wed !== "") {
+                var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.wed, zone, 3)
+                brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.alternativeKidFriendlyHours.wed = brewery.alternativeKidFriendlyHours.wed.replace(/:00/g, "")
+            }
+            if (brewery.alternativeKidFriendlyHours.thu && brewery.alternativeKidFriendlyHours.thu !== "") {
+                var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.thu, zone, 4)
+                brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.alternativeKidFriendlyHours.thu = brewery.alternativeKidFriendlyHours.thu.replace(/:00/g, "")
+            }
+            if (brewery.alternativeKidFriendlyHours.fri && brewery.alternativeKidFriendlyHours.fri !== "") {
+                var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.fri, zone, 5)
+                brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.alternativeKidFriendlyHours.fri = brewery.alternativeKidFriendlyHours.fri.replace(/:00/g, "")
+            }
+            if (brewery.alternativeKidFriendlyHours.sat && brewery.alternativeKidFriendlyHours.sat !== "") {
+                var openClose = getOpenCloseSeconds(brewery.alternativeKidFriendlyHours.sat, zone, 6)
+                brewery.alternativeKidFriendlyHours.openTimes.push({open: openClose[0], close: openClose[1]})
+                brewery.alternativeKidFriendlyHours.sat = brewery.alternativeKidFriendlyHours.sat.replace(/:00/g, "")
+            }
+        } catch (err) {
+            console.log("Invalid family friendly open/close times provided.")
+            next(new Error("Invalid family friendly open/close times provided. Please provide valid open/close times."))
+        } 
     
     
     next()
