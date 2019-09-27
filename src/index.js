@@ -1,11 +1,13 @@
 require('./models/User')
 require('./models/ResetToken')
+require('./models/Brewery')
 
 const express = require('express')
 const mongoose = require('mongoose')
 const authRoutes = require('./routes/authRoutes')
 const resetRoutes = require('./routes/passwordResetRoutes')
 const userRoutes = require('./routes/userRoutes')
+const breweryRoutes = require('./routes/breweryRoutes')
 const bodyParser = require('body-parser')
 const requireAuth = require('./middlewares/requireAuth')
 
@@ -15,6 +17,7 @@ app.use(bodyParser.json())
 app.use(authRoutes)
 app.use(resetRoutes)
 app.use(userRoutes)
+app.use(breweryRoutes)
 
 const mongoUri = process.env.MONGODB_URI
 
