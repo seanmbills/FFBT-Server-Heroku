@@ -182,7 +182,7 @@ router.get('/getOwnedBreweries', async(req, res) => {
 router.get('/search', async(req, res) => {
     // all the search criteria to filter on
     const {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating} = req.body
-
+    console.log({name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating})
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
     }
