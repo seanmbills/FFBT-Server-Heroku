@@ -141,7 +141,7 @@ router.post('/updateBrewery', async(req, res) => {
                 }
 
                 await doc.save()
-                return res.status(200).send({response: `Successfully updated the location ${doc.name}`})
+                return res.status(200).send({count: 1, response: `Successfully updated the location ${doc.name}`})
             } catch (err) {
                 return res.status(401).send({error: "Experienced an error while trying to update a brewery location."})
             }
@@ -335,7 +335,8 @@ router.get('/search', async(req, res) => {
                 address: element.address,
                 price: element.price,
                 accommodations: element.accommodations,
-                distance: element.distance
+                distance: element.distance,
+                numReviews: element.comments.length
             }
         )
     })
@@ -360,7 +361,7 @@ router.get(`/brewery`, async(req, res) => {
         return res.status(400).send({error: "Could not find the specified brewery location. Please try again."})
     }
 
-    res.status(200).send(brewery)
+    res.status(200).send({count: 1, response: [brewery]})
 })
 
 // export all of the routes for the brewery routes object
