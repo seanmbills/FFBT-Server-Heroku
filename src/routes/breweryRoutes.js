@@ -300,7 +300,6 @@ router.get('/search', async(req, res) => {
         console.log("Didn't find anything in aggregate")
         return res.status(200).send({count: 0, response: null})
     }
-    console.log(documents)
 
     // filter the search results even further by using a fuzzy matching algorithm
     // to compare against the name provided
