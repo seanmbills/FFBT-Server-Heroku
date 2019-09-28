@@ -181,10 +181,18 @@ router.get('/getOwnedBreweries', async(req, res) => {
 
 router.get('/search', async(req, res) => {
     // all the search criteria to filter on
-    const {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating} = req.query
-    console.log({name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating})
-    console.log(req)
-    console.log("Type Lat: " + typeof latitude)
+    var {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating} = req.query
+    
+    latitude = latitude === undefined ? null : parseInt(latitude)
+    longitude = longitude === undefined ? null : parseInt(longitude)
+    zipCode = zipCode === undefined ? null: parseInt(zipCode)
+    distance = parseInt(distance)
+    maximumPrice = parseInt(maximumPrice)
+    minimumRating = parseInt(minimumRating)
+    openNow = openNow !== undefined && openNow === 'true' ? true : false
+    kidFriendlyNow = kidFriendlyNow !== undefined && kidFriendlyNow === 'true' ? true : false
+    accommodationsSearch = accommodationsSearch === undefined ? null : JSON.parse(accommodationsSearch)
+
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
     }
@@ -201,7 +209,7 @@ router.get('/search', async(req, res) => {
 
     // if we're trying to search on certain criteria, we'll add them to the 
     // searchQuery
-    if (accommodationsSearch !== null) {
+    if (accommodationsSearch !== undefined) {
         // need to add an accommodations tag so that when we flatten
         // out the object MongoDB can reference it correctly
         var temp = {"accommodations": accommodationsSearch}
@@ -285,17 +293,19 @@ router.get('/search', async(req, res) => {
     }
 
     var documents = await Brewery.aggregate(aggregate)
-    if (!documents){
+    if (documents === undefined || documents.length === 0){
         // if we don't find any documents, we should provide a 200 response
         // to say that the search was good but that there weren't any 
         // results that came back
+        console.log("Didn't find anything in aggregate")
         return res.status(200).send({count: 0, response: null})
     }
+    console.log(documents)
 
     // filter the search results even further by using a fuzzy matching algorithm
     // to compare against the name provided
     var documentsWithFuzzySearchName = []
-    if (name) {
+    if (name !== undefined && name) {
         const options = {
             scorer: fuzzy.partial_token_set_ratio, // Any function that takes two values and returns a score, default: ratio
             processor: choice => choice.name,  // Takes choice object, returns string, default: no processor. Must supply if choices are not already strings.
@@ -308,7 +318,7 @@ router.get('/search', async(req, res) => {
     }
 
     // if we had fuzzy match results, update the documents to reference them
-    if (documentsWithFuzzySearchName) {
+    if (documentsWithFuzzySearchName !== undefined && documentsWithFuzzySearchName.length > 0) {
         documents = []
         documentsWithFuzzySearchName.forEach(function(element) {
             documents.push(element.choice)
@@ -344,7 +354,7 @@ router.get('/search', async(req, res) => {
 
 router.get(`/brewery`, async(req, res) => {
     // get all of the information for a specific document in storage
-    const {breweryId} = req.body
+    const {breweryId} = req.query
 
     const brewery = await Brewery.findById(breweryId)
     if (!brewery) {
