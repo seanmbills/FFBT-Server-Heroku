@@ -184,6 +184,7 @@ router.get('/search', async(req, res) => {
     const {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating} = req.query
     console.log({name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating})
     console.log(req)
+    console.log("Type Lat: " + typeof latitude)
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
     }
