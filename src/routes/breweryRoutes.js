@@ -181,7 +181,7 @@ router.get('/getOwnedBreweries', async(req, res) => {
 
 router.get('/search', async(req, res) => {
     // all the search criteria to filter on
-    const {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating} = req.query
+    const {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating} = req.params
     console.log({name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating})
     console.log(req)
     if ((!latitude || !longitude) && !zipCode) {
