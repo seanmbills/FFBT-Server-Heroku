@@ -11,7 +11,7 @@ const reviewSchema = new mongoose.Schema({
             ref: 'User',
             required: true
         },
-        user: {
+        username: {
             type: String,
             required: true
         }

@@ -35,7 +35,7 @@ router.post('/createBrewery', async(req, res) => {
 
         const user = await User.findById(userId)
         if (!user)
-            res.status(401).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
+            return res.status(401).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
 
         try {
             var kidHours = {}
