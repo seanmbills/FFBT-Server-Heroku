@@ -6,12 +6,20 @@ const reviewSchema = new mongoose.Schema({
         required: true
     },
     poster: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        user: {
+            type: String,
+            required: true
+        }
     },
     brewery: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Brewery'
+        ref: 'Brewery',
+        required: true
     },
     rating: {
         type: Number,
