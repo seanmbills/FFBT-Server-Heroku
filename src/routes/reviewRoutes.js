@@ -99,5 +99,26 @@ router.post('/editReview', async(req, res) => {
     })
 })
 
+router.get('/getBreweryReviews', async (req, res) => {
+    var {breweryId} = req.query
+
+    const breweryReviews = await Review.find({brewery: breweryId})
+    if (!breweryReviews || breweryReviews.length === 0) {
+        return res.status(200).send({count: 0, response: "No reviews exist for this location."})
+    }
+    return res.status(200).send({count: breweryReviews.length, response: breweryReviews})
+})
+
+router.get('/review', async(req, res) => {
+    var {reviewId} = req.query
+
+    const review = await Review.findById(reviewId)
+    if (!review) {
+        return res.status(400).send({error: "No review could be found with this id. Please try again."})
+    }
+
+    return res.status(200).send({count: 1, response: review})
+})
+
 // export all of the routes for the brewery routes object
 module.exports = router
