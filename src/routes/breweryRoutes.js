@@ -201,9 +201,9 @@ router.get('/search', async(req, res) => {
     distance = parseInt(distance)
     maximumPrice = parseInt(maximumPrice)
     minimumRating = parseInt(minimumRating)
-    openNow = openNow !== undefined && openNow === 'true' ? true : false
-    kidFriendlyNow = kidFriendlyNow !== undefined && kidFriendlyNow === 'true' ? true : false
-    accommodationsSearch = accommodationsSearch === undefined ? null : JSON.parse(accommodationsSearch)
+    openNow = openNow !== undefined && openNow !== null && openNow === 'true' ? true : false
+    kidFriendlyNow = kidFriendlyNow !== undefined && kidFriendlyNow !== null && kidFriendlyNow === 'true' ? true : false
+    accommodationsSearch = accommodationsSearch === undefined || accommodationsSearch === null ? null : JSON.parse(accommodationsSearch)
 
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
