@@ -204,6 +204,7 @@ router.get('/search', async(req, res) => {
     openNow = openNow !== undefined && openNow !== null && openNow === 'true' ? true : false
     kidFriendlyNow = kidFriendlyNow !== undefined && kidFriendlyNow !== null && kidFriendlyNow === 'true' ? true : false
     accommodationsSearch = accommodationsSearch === undefined || accommodationsSearch === null ? null : JSON.parse(accommodationsSearch)
+    console.log(accommodationsSearch)
 
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
