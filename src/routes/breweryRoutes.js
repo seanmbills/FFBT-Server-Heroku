@@ -195,9 +195,9 @@ router.get('/search', async(req, res) => {
     // all the search criteria to filter on
     var {name, latitude, longitude, zipCode, distance, maximumPrice, accommodationsSearch, openNow, kidFriendlyNow, minimumRating} = req.query
     
-    latitude = latitude === undefined ? null : parseInt(latitude)
-    longitude = longitude === undefined ? null : parseInt(longitude)
-    zipCode = zipCode === undefined ? null: parseInt(zipCode)
+    latitude = latitude === undefined || latitude === null ? null : parseInt(latitude)
+    longitude = longitude === undefined || longitude === null ? null : parseInt(longitude)
+    zipCode = zipCode === undefined || zipCode === null ? null: parseInt(zipCode)
     distance = parseInt(distance)
     maximumPrice = parseInt(maximumPrice)
     minimumRating = parseInt(minimumRating)
