@@ -7,6 +7,18 @@ const flat = require('flat')
 const fuzzy = require('fuzzball')
 const moment = require('moment')
 const momentTz = require('moment-timezone')
+const NodeGeocoder = require('node-geocoder')
+
+
+const options = {
+    provider: 'mapquest',
+  
+    httpAdapter: 'https', // Default
+    apiKey: process.env.MAPQUEST_API_KEY, // for Mapquest, OpenCage, Google Premier
+    formatter: null         // 'gpx', 'string', ...
+};
+
+const geocoder = NodeGeocoder(options);
 
 
 const router = express.Router()
@@ -35,7 +47,7 @@ router.post('/createBrewery', async(req, res) => {
 
         const user = await User.findById(userId)
         if (!user)
-            res.status(401).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
+            return res.status(401).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
 
         try {
             var kidHours = {}
@@ -195,6 +207,22 @@ router.get('/search', async(req, res) => {
 
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
+    }
+
+    if (!latitude && !longitude && zipCode) {
+        try {
+            // convert zip code to approximate lat/long coordinates for using MongoDB
+            // GeoJSON search feature later on
+            const coords = await geocoder.geocode(zipCode + " USA")
+            latitude = coords[0].latitude
+            longitude = coords[0].longitude
+
+            if (!latitude || !longitude) {
+                next(new Error("Invalid zip code provided for searching."))
+            }
+        } catch (err) {
+            next(new Error("Invalid zip code provided for searching."))
+        }
     }
 
     // parse price and ratings critera into the start of a MongoDB search 
