@@ -204,7 +204,7 @@ router.get('/search', async(req, res) => {
     openNow = openNow !== undefined && openNow !== null && openNow === 'true' ? true : false
     kidFriendlyNow = kidFriendlyNow !== undefined && kidFriendlyNow !== null && kidFriendlyNow === 'true' ? true : false
     accommodationsSearch = accommodationsSearch === undefined || accommodationsSearch === null ? null : JSON.parse(accommodationsSearch)
-    console.log(accommodationsSearch)
+    // console.log(accommodationsSearch)
 
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
@@ -238,7 +238,7 @@ router.get('/search', async(req, res) => {
 
     // if we're trying to search on certain criteria, we'll add them to the 
     // searchQuery
-    if (accommodationsSearch !== undefined) {
+    if (accommodationsSearch !== undefined && accommodationsSearch !== null) {
         // need to add an accommodations tag so that when we flatten
         // out the object MongoDB can reference it correctly
         var temp = {"accommodations": accommodationsSearch}
