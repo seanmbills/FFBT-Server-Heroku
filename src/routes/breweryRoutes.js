@@ -382,7 +382,7 @@ router.get('/search', async(req, res) => {
     })
 })
 
-router.get(`/brewery`, async(req, res) => {
+router.get('/brewery', async(req, res) => {
     // get all of the information for a specific document in storage
     const {breweryId} = req.query
 
