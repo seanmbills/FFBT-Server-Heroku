@@ -384,7 +384,7 @@ router.get('/search', async(req, res) => {
 
 router.get('/brewery', async(req, res) => {
     // get all of the information for a specific document in storage
-    const {breweryId} = req.query
+    var {breweryId} = req.query
     console.log("Brewery Id: " + breweryId)
 
     const brewery = await Brewery.findById(breweryId)
