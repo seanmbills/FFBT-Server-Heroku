@@ -365,7 +365,7 @@ router.get('/search', async(req, res) => {
                 price: element.price,
                 accommodations: element.accommodations,
                 distance: element.distance,
-                numReviews: element.comments.length,
+                numReviews: element.numReviews,
                 rating: parseFloat(element.ratings)
             }
         )
