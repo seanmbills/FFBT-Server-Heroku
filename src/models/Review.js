@@ -42,16 +42,15 @@ reviewSchema.pre('save', async function(next) {
         }
 
         try {
-            var newRating = doc.rating * doc.comments.length
+            var newRating = doc.rating * doc.numReviews
             newRating = newRating * review.rating
-            newRating = newRating / (doc.comments.length + 1)
+            newRating = newRating / (doc.numReviews + 1)
 
-            var newComments = doc.comments
-            newComments.push(review._id)
+            var newReviews = doc.numReviews + 1
             
-            doc._doc = {...doc._doc, rating: newRating, comments: newComments}
+            doc._doc = {...doc._doc, rating: newRating, numReviews: newReviews}
             doc.markModified('rating')
-            doc.markModified('comments')
+            doc.markModified('numReviews')
 
             await doc.save()
         } catch (err) {
