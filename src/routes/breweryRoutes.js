@@ -396,19 +396,19 @@ function getOpenNow(element, kidFriendly) {
     // the time we're trying to store
     // need the (86400 * day) to add in all of the previous days in the week
     var currSeconds = currMoment.diff(currMoment.clone().startOf('day'), 'seconds') + (86400 * day)
-    console.log("Curr Seconds: " + currSeconds)
-    for (time in element.businessHours.openTimes) {
-        if (currSeconds <= time.close && currSeconds >= time.open) output.push(true)
+    var openTimes = element.businessHours.openTimes
+    for (var index in openTimes) {
+        if (currSeconds <= openTimes[index].close && currSeconds >= openTimes[index].open) {output.push(true)}
     }
     if (output.length == 0 || output[0] != true) output[0] = false
 
-    for (time in element.alternativeKidFriendlyHours.openTimes) {
-        if (currSeconds <= time.close && currSeconds >= time.open) output.push(true)
+    kidFriendlyTimes = element.alternativeKidFriendlyHours.openTimes
+    for (var index in kidFriendlyTimes) {
+        if (currSeconds <= kidFriendlyTimes[index].close && currSeconds >= kidFriendlyTimes[index].open) {output.push(true)}
     }
-    if (output.length == 1 || outut[1] != true) output[1] = false
+    if (output.length == 1 || output[1] != true) output[1] = false
 
 
-    console.log(output)
     return output
 }
 
