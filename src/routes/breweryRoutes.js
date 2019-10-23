@@ -396,7 +396,7 @@ function getOpenNow(element, kidFriendly) {
     // the time we're trying to store
     // need the (86400 * day) to add in all of the previous days in the week
     var currSeconds = currMoment.diff(currMoment.clone().startOf('day'), 'seconds') + (86400 * day)
-
+    console.log("Curr Seconds: " + currSeconds)
     for (time in element.businessHours.openTimes) {
         if (currSeconds <= time.close && currSeconds >= time.open) output.push(true)
     }
@@ -407,6 +407,8 @@ function getOpenNow(element, kidFriendly) {
     }
     if (output.length == 1 || outut[1] != true) output[1] = false
 
+
+    console.log(output)
     return output
 }
 
