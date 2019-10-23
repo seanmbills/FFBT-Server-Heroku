@@ -357,6 +357,7 @@ router.get('/search', async(req, res) => {
     // that we need to display in the frontend
     var results = []
     documents.forEach(function(element) {
+        var open = getOpenNow(element)
         results.push(
             {
                 breweryId: element._id,
@@ -366,7 +367,9 @@ router.get('/search', async(req, res) => {
                 accommodations: element.accommodations,
                 distance: element.distance,
                 numReviews: element.numReviews,
-                rating: parseFloat(element.ratings)
+                rating: parseFloat(element.ratings),
+                openNow: open[0],
+                kidFriendlyNow: open[1]
             }
         )
     })
@@ -382,6 +385,32 @@ router.get('/search', async(req, res) => {
     })
 })
 
+
+function getOpenNow(element, kidFriendly) {
+    var currMoment = moment().utc()
+    var day = currMoment.day()
+
+    var output = []
+
+    // calculate the difference in seconds between start of the week (midnight sunday) and 
+    // the time we're trying to store
+    // need the (86400 * day) to add in all of the previous days in the week
+    var currSeconds = currMoment.diff(currMoment.clone().startOf('day'), 'seconds') + (86400 * day)
+
+    for (time in element.businessHours.openTimes) {
+        if (currSeconds <= time.close && currSeconds >= time.open) output.push(true)
+    }
+    if (output.length == 0 || output[0] != true) output[0] = false
+
+    for (time in element.alternativeKidFriendlyHours.openTimes) {
+        if (currSeconds <= time.close && currSeconds >= time.open) output.push(true)
+    }
+    if (output.length == 1 || outut[1] != true) output[1] = false
+
+    return output
+}
+
+
 router.get('/brewery', async(req, res) => {
     // get all of the information for a specific document in storage
     console.log(req)
@@ -393,7 +422,14 @@ router.get('/brewery', async(req, res) => {
         return res.status(400).send({error: "Could not find the specified brewery location. Please try again."})
     }
 
-    res.status(200).send({count: 1, response: [brewery]})
+    var open = getOpenNow(brewery)
+    res.status(200).send({count: 1, response: [
+        {
+            brewery: brewery,
+            openNow: open[0],
+            kidFriendlyNow: open[1]
+        }
+    ]})
 })
 
 // export all of the routes for the brewery routes object
