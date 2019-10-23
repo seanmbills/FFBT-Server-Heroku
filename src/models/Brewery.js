@@ -76,6 +76,11 @@ const brewerySchema = new mongoose.Schema({
             message: props => `${props.value} is an invalid rating!`
         }
     },
+    numReviews: {
+        type: Number,
+        default: 0,
+        required: true
+    },
     geoLocation: {
         type: {
             type: String, // Don't do `{ location: { type: String } }`
@@ -180,9 +185,6 @@ const brewerySchema = new mongoose.Schema({
             type: String
         }
     },
-    comments: [
-        // TODO: need to ipmlement this later in sprint 5
-    ],
     accommodations: {
         petFriendly: {
             waterStations: Boolean,
