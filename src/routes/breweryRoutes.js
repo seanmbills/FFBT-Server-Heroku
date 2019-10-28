@@ -256,13 +256,13 @@ router.get('/search', async(req, res) => {
     // create the filter object that we'll use to aggregate our
     // MongoDB search on
     const filter = {
-        $geoNear: {
+        geoNear: {
             // provide the coordinates to do a geosearch near
             near: {
                 type: "Point",
                 coordinates: [ longitude, latitude ]
             },
-            $maxDistance: distance,
+            maxDistance: distance,
             spherical: true,
             // we'll tack the "distance" field on to our aggregate
             // results
