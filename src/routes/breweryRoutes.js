@@ -199,6 +199,7 @@ router.get('/search', async(req, res) => {
     longitude = longitude === undefined || longitude === null ? null : parseInt(longitude)
     zipCode = zipCode === undefined || zipCode === null ? null: parseInt(zipCode)
     distance = parseInt(distance)
+    console.log(distance)
     maximumPrice = parseInt(maximumPrice)
     minimumRating = parseInt(minimumRating)
     openNow = openNow !== undefined && openNow !== null && openNow === 'true' ? true : false
