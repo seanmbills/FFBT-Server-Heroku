@@ -322,6 +322,8 @@ router.get('/search', async(req, res) => {
         ) 
     }
 
+    console.log(aggregate)
+
     var documents = await Brewery.aggregate(aggregate)
     if (documents === undefined || documents.length === 0){
         // if we don't find any documents, we should provide a 200 response
