@@ -259,9 +259,11 @@ router.get('/search', async(req, res) => {
     const filter = {
         $geoNear: {
             // provide the coordinates to do a geosearch near
-            near: {
-                type: "Point",
-                coordinates: [ longitude, latitude ]
+            $near: {
+                $geometry: {
+                    type: "Point",
+                    coordinates: [ longitude, latitude ]
+                }
             },
             $maxDistance: distance,
             spherical: true,
