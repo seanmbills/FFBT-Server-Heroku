@@ -322,7 +322,7 @@ router.get('/search', async(req, res) => {
         ) 
     }
 
-    console.log(aggregate)
+    console.log(JSON.stringify(aggregate))
 
     var documents = await Brewery.aggregate(aggregate)
     if (documents === undefined || documents.length === 0){
