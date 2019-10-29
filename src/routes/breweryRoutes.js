@@ -263,7 +263,7 @@ router.get('/search', async(req, res) => {
                 type: "Point",
                 coordinates: [ longitude, latitude ]
             },
-            $maxDistance: distance,
+            maxDistance: distance,
             spherical: true,
             // we'll tack the "distance" field on to our aggregate
             // results
