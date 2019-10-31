@@ -43,7 +43,7 @@ router.post('/signup', async (req, res) => {
         
         // get the AWS signed URL to return to the user to post their profile pic to
         // the AWS S3 instance
-        const signedURL = AwsClient.getPostImageSignedUrl(`${user._id}.jpg`, 'accountImages')
+        const signedURL = AwsClient.getPostImageSignedUrl(`${userId}.jpg`, 'accountImages')
 
         const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
         res.send({token, signedURL})
