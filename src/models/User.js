@@ -8,6 +8,9 @@ const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
 const usernameRegex = /^[0-9A-Za-z_]{6,30}$/
 
 const userSchema = new mongoose.Schema({
+    profilePic: {
+        type: String
+    }, 
     // email needs to match the universal regex check for an email
     email: {
         type: String, 

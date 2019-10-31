@@ -1,13 +1,15 @@
-const mongoose = require('mongoose')
-const User = mongoose.Schema('User')
+// const mongoose = require('mongoose')
+// const User = mongoose.model('User')
 
 const aws = require('aws-sdk')
 
 var s3 = new aws.S3({
     accessKeyId: process.env.S3_ACCESS_KEY,
     secretAccessKey: process.env.S3_SECRET_KEY,
-    region: 'us-east-1'
+    region: process.env.S3_REGION_NAME
 })
+
+console.log(s3)
 
 module.exports = {
     getPostImageSignedUrl: function (imageName, folderName) {
