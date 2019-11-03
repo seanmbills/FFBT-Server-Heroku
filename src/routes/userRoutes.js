@@ -74,19 +74,28 @@ router.get('/getUserInfo', async(req, res) => {
             return res.status(401).send({error: loginErrorMessage})
         }
 
-        const {userId} = payload
-        var user = await User.findById(userId)
+        try {
+            const {userId} = payload
+            console.log(userId)
+            var user = await User.findById(userId)
+            console.log(user)
 
-        if (!user) {
-            return res.status(400).send({error: "Could not find the specified user. Please try again."})
+            if (!user) {
+                return res.status(400).send({error: "Could not find the specified user. Please try again."})
+            }
+
+            var signedUrl = AwsClient.getGetImageSignedUrl(`${user.userId}.jpg`, 'accountImages')
+            console.log(signedUrl)
+
+            res.status(200).send({
+                zipCode: user.zipCode,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                profilePic: signedUrl
+            })
+        } catch (err) {
+            console.log(err)
         }
-
-        res.status(200).send({
-            zipCode: user.zipCode,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            profilePic: AwsClient.getGetImageSignedUrl(user.userId, "accountImages")
-        })
     })
 })
 
