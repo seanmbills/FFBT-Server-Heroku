@@ -3,6 +3,8 @@ const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 const User = mongoose.model('User')
 
+const AwsClient = require('../api/awsClient')
+
 const router = express.Router()
 
 const invalidMessage = "Invalid email or password."
@@ -56,6 +58,35 @@ router.post('/userUpdate', async(req, res) => {
         })
 
         req.user = user
+    })
+})
+
+router.get('/getUserInfo', async(req, res) => {
+    const {authorization} = req.headers
+
+    if (!authorization) {
+        return res.status(401).send({error: loginErrorMessage})
+    }
+
+    const token = authorization.replace('Bearer ', '')
+    jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
+        if (err) {
+            return res.status(401).send({error: loginErrorMessage})
+        }
+
+        const {userId} = payload
+        var user = await User.findById(userId)
+
+        if (!user) {
+            return res.status(400).send({error: "Could not find the specified user. Please try again."})
+        }
+
+        res.status(200).send({
+            zipCode: user.zipCode,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            profilePic: AwsClient.getGetImageSignedUrl(user.userId, "accountImages")
+        })
     })
 })
 
