@@ -28,7 +28,6 @@ module.exports = {
         var params= {
             Bucket: `${process.env.S3_BUCKET_NAME}`,
             Key: `${folderName}/${imageName}`,
-            ContentType: 'image/jpeg',
             Expires: 3600
         }
 

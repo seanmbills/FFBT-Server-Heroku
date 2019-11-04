@@ -3,6 +3,8 @@ const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 const User = mongoose.model('User')
 
+const AwsClient = require('../api/awsClient')
+
 const router = express.Router()
 
 const invalidMessage = "Invalid email or password."
@@ -48,14 +50,54 @@ router.post('/userUpdate', async(req, res) => {
                 doc.markModified('updatedDate')
                 await doc.save()
     
+                var signedUrl = AwsClient.getPostImageSignedUrl(`${doc.userId}.jpg`, "accountImages")
+
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-                res.send({token})
+                res.send({token, signedUrl})
             } catch (err) {
                 return res.status(401).send({error: err})
             }
         })
 
         req.user = user
+    })
+})
+
+router.get('/getUserInfo', async(req, res) => {
+    const {authorization} = req.headers
+
+    if (!authorization) {
+        return res.status(401).send({error: loginErrorMessage})
+    }
+
+    const token = authorization.replace('Bearer ', '')
+    jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
+        if (err) {
+            return res.status(401).send({error: loginErrorMessage})
+        }
+
+        try {
+            const {userId} = payload
+            console.log(userId)
+            var user = await User.findById(userId)
+            console.log(user)
+
+            if (!user) {
+                return res.status(400).send({error: "Could not find the specified user. Please try again."})
+            }
+
+            var signedUrl = AwsClient.getGetImageSignedUrl(`${user.userId}.jpg`, 'accountImages')
+            console.log(signedUrl)
+
+            res.status(200).send({
+                zipCode: user.zipCode,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                profilePic: signedUrl
+            })
+        } catch (err) {
+            console.log(err)
+        }
     })
 })
 
