@@ -50,8 +50,10 @@ router.post('/userUpdate', async(req, res) => {
                 doc.markModified('updatedDate')
                 await doc.save()
     
+                var signedUrl = AwsClient.getPostImageSignedUrl(`${doc.userId}.jpg`, "accountImages")
+
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-                res.send({token})
+                res.send({token, signedUrl})
             } catch (err) {
                 return res.status(401).send({error: err})
             }

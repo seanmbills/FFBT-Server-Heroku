@@ -9,6 +9,8 @@ const moment = require('moment')
 const momentTz = require('moment-timezone')
 const NodeGeocoder = require('node-geocoder')
 
+const AwsClient = require('../api/awsClient')
+
 
 const options = {
     provider: 'mapquest',
@@ -61,7 +63,19 @@ router.post('/createBrewery', async(req, res) => {
             
             await brewery.save()
 
-            res.send({response: "New brewery location with the name " + name + " was successfully created!"})
+            var signedUrl1 = AwsClient.getPostImageSignedUrl(`${brewery._id}-1.jpg`, 'breweryImages')
+            var signedUrl2 = AwsClient.getPostImageSignedUrl(`${brewery._id}-2.jpg`, 'breweryImages')
+            var signedUrl3 = AwsClient.getPostImageSignedUrl(`${brewery._id}-3.jpg`, 'breweryImages')
+
+
+            res.send(
+                {
+                    response: "New brewery location with the name " + name + " was successfully created!",
+                    signedUrl1,
+                    signedUrl2,
+                    signedUrl3
+                }
+            )
         } catch(err) {
             return res.status(422).send({error: err.message})
         }
@@ -153,7 +167,20 @@ router.post('/updateBrewery', async(req, res) => {
                 }
 
                 await doc.save()
-                return res.status(200).send({count: 1, response: `Successfully updated the location ${doc.name}`})
+
+                var signedUrl1 = AwsClient.getPostImageSignedUrl(`${brewery._id}-1.jpg`, 'breweryImages')
+                var signedUrl2 = AwsClient.getPostImageSignedUrl(`${brewery._id}-2.jpg`, 'breweryImages')
+                var signedUrl3 = AwsClient.getPostImageSignedUrl(`${brewery._id}-3.jpg`, 'breweryImages')
+
+                return res.status(200).send(
+                    {
+                        count: 1,
+                        response: `Successfully updated the location ${doc.name}`,
+                        signedUrl1,
+                        signedUrl2,
+                        signedUrl3
+                    }
+                )
             } catch (err) {
                 return res.status(401).send({error: "Experienced an error while trying to update a brewery location."})
             }
@@ -322,8 +349,6 @@ router.get('/search', async(req, res) => {
         ) 
     }
 
-    console.log(JSON.stringify(aggregate))
-
     var documents = await Brewery.aggregate(aggregate)
     if (documents === undefined || documents.length === 0){
         // if we don't find any documents, we should provide a 200 response
@@ -372,7 +397,8 @@ router.get('/search', async(req, res) => {
                 numReviews: element.numReviews,
                 rating: parseFloat(element.ratings),
                 openNow: open[0],
-                kidFriendlyNow: open[1]
+                kidFriendlyNow: open[1],
+                signedUrl: AwsClient.getGetImageSignedUrl(`${element._id}-1.jpg`, 'breweryImages')
             }
         )
     })
@@ -432,7 +458,10 @@ router.get('/brewery', async(req, res) => {
         {
             brewery: brewery,
             openNow: open[0],
-            kidFriendlyNow: open[1]
+            kidFriendlyNow: open[1],
+            signedUrl1: AwsClient.getGetImageSignedUrl(`${brewery._id}-1.jpg`, 'breweryImages'),
+            signedUrl2: AwsClient.getGetImageSignedUrl(`${brewery._id}-2.jpg`, 'breweryImages'),
+            signedUrl3: AwsClient.getGetImageSignedUrl(`${brewery._id}-3.jpg`, 'breweryImages')
         }
     ]})
 })
