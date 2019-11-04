@@ -32,7 +32,7 @@ module.exports = {
         }
 
         try {
-            const headCode = s3.headObject(params)
+            const headCode = s3.headObject(params).promise()
             var url = s3.getSignedUrl('getObject', params)
             return url
         } catch (err) {
