@@ -31,7 +31,12 @@ module.exports = {
             Expires: 3600
         }
 
-        var url = s3.getSignedUrl('getObject', params)
-        return url
+        try {
+            const headCode = s3.headObject(params)
+            var url = s3.getSignedUrl('getObject', params)
+            return url
+        } catch (err) {
+            return ''
+        }
     }
 }
