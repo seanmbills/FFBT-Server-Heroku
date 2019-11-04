@@ -24,7 +24,7 @@ module.exports = {
         return url
     },
 
-    getGetImageSignedUrl: async function(imageName, folderName) {
+    getGetImageSignedUrl: function(imageName, folderName) {
         var params= {
             Bucket: `${process.env.S3_BUCKET_NAME}`,
             Key: `${folderName}/${imageName}`,
@@ -32,7 +32,7 @@ module.exports = {
         }
 
         try {
-            const headCode = await s3.headObject(params).promise()
+            const headCode = s3.headObject(params)
             var url = s3.getSignedUrl('getObject', params)
             return url
         } catch (err) {
