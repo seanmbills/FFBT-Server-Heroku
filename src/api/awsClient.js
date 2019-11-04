@@ -24,7 +24,7 @@ module.exports = {
         return url
     },
 
-    getGetImageSignedUrl: function(imageName, folderName) {
+    getGetImageSignedUrl: async function(imageName, folderName) {
         var params= {
             Bucket: `${process.env.S3_BUCKET_NAME}`,
             Key: `${folderName}/${imageName}`,
