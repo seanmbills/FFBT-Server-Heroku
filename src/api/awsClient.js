@@ -9,8 +9,6 @@ var s3 = new aws.S3({
     region: process.env.S3_REGION_NAME
 })
 
-console.log(s3)
-
 module.exports = {
     getPostImageSignedUrl: function (imageName, folderName) {
         var params = {
@@ -24,19 +22,22 @@ module.exports = {
         return url
     },
 
-    getGetImageSignedUrl: function(imageName, folderName) {
-        var params= {
+    getGetImageSignedUrl: async function(imageName, folderName) {
+        var params = {
             Bucket: `${process.env.S3_BUCKET_NAME}`,
-            Key: `${folderName}/${imageName}`,
-            Expires: 3600
+            Key: `${folderName}/${imageName}`
         }
 
-        try {
-            const headCode = s3.headObject(params)
-            var url = s3.getSignedUrl('getObject', params)
-            return url
-        } catch (err) {
-            return ''
-        }
+        try { 
+            const headCode = await s3.headObject(params).promise();
+            const signedUrl = s3.getSignedUrl('getObject', params)
+            // Do something with signedUrl
+            return signedUrl
+          } catch (headErr) {
+            if (headErr.code === 'NotFound') {
+              // Handle no object on cloud here  
+              return ''
+            }
+          }
     }
 }
