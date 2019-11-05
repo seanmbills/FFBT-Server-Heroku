@@ -386,10 +386,8 @@ router.get('/search', async(req, res) => {
     var results = []
     for(i = 0; i < documents.length; i++) {
         var doc = documents[i]
-        console.log(doc)
         var open = getOpenNow(doc)
         var signedUrl = await AwsClient.getGetImageSignedUrl(`${doc._id}-1.jpg`, 'breweryImages')
-        // console.log(signedUrl)
         results.push(
             {
                 breweryId: doc._id,
