@@ -384,24 +384,28 @@ router.get('/search', async(req, res) => {
     // set the results to return to be the necessary information for each document
     // that we need to display in the frontend
     var results = []
-    documents.forEach(function(element) {
-        var open = getOpenNow(element)
+    for(i = 0; i < documents.length; i++) {
+        var doc = documents[i]
+        console.log(doc)
+        var open = getOpenNow(doc)
+        var signedUrl = await AwsClient.getGetImageSignedUrl(`${doc._id}-1.jpg`, 'breweryImages')
+        // console.log(signedUrl)
         results.push(
             {
-                breweryId: element._id,
-                name: element.name,
-                address: element.address,
-                price: element.price,
-                accommodations: element.accommodations,
-                distance: element.distance,
-                numReviews: element.numReviews,
-                rating: parseFloat(element.ratings),
+                breweryId: doc._id,
+                name: doc.name,
+                address: doc.address,
+                price: doc.price,
+                accommodations: doc.accommodations,
+                distance: doc.distance,
+                numReviews: doc.numReviews,
+                rating: parseFloat(doc.ratings),
                 openNow: open[0],
                 kidFriendlyNow: open[1],
-                signedUrl: AwsClient.getGetImageSignedUrl(`${element._id}-1.jpg`, 'breweryImages')
+                signedUrl
             }
         )
-    })
+    }
 
     // return only certain information necessary for displaying
     // an individual location on the list/map view
