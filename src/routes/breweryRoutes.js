@@ -457,15 +457,19 @@ router.get('/brewery', async(req, res) => {
         return res.status(400).send({error: "Could not find the specified brewery location. Please try again."})
     }
 
+    var signedUrl1 = await AwsClient.getGetImageSignedUrl(`${brewery._id}-1.jpg`, 'breweryImages')
+    var signedUrl2 = await AwsClient.getGetImageSignedUrl(`${brewery._id}-2.jpg`, 'breweryImages')
+    var signedUrl3 = await AwsClient.getGetImageSignedUrl(`${brewery._id}-3.jpg`, 'breweryImages')
+
     var open = getOpenNow(brewery)
     res.status(200).send({count: 1, response: [
         {
             brewery: brewery,
             openNow: open[0],
             kidFriendlyNow: open[1],
-            signedUrl1: AwsClient.getGetImageSignedUrl(`${brewery._id}-1.jpg`, 'breweryImages'),
-            signedUrl2: AwsClient.getGetImageSignedUrl(`${brewery._id}-2.jpg`, 'breweryImages'),
-            signedUrl3: AwsClient.getGetImageSignedUrl(`${brewery._id}-3.jpg`, 'breweryImages')
+            signedUrl1, 
+            signedUrl2,
+            signedUrl3
         }
     ]})
 })
