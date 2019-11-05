@@ -86,7 +86,7 @@ router.get('/getUserInfo', async(req, res) => {
                 return res.status(400).send({error: "Could not find the specified user. Please try again."})
             }
 
-            var signedUrl = AwsClient.getGetImageSignedUrl(`${user.userId}.jpg`, 'accountImages')
+            var signedUrl = await AwsClient.getGetImageSignedUrl(`${user.userId}.jpg`, 'accountImages')
             console.log(signedUrl)
 
             res.status(200).send({
