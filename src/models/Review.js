@@ -17,7 +17,7 @@ const reviewSchema = new mongoose.Schema({
             required: true
         }
     },
-    brewery: {
+    breweryId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Brewery',
         required: true
@@ -36,7 +36,7 @@ const reviewSchema = new mongoose.Schema({
 reviewSchema.pre('save', async function(next) {
     const review = this
     
-    const brewery = await Brewery.findById(brewery, async function(err, doc) {
+    const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
         if (err) {
             next(new Error("Must provide a valid brewery id for the review."))
         }
