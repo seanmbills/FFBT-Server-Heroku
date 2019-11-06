@@ -384,24 +384,26 @@ router.get('/search', async(req, res) => {
     // set the results to return to be the necessary information for each document
     // that we need to display in the frontend
     var results = []
-    documents.forEach(function(element) {
-        var open = getOpenNow(element)
+    for(i = 0; i < documents.length; i++) {
+        var doc = documents[i]
+        var open = getOpenNow(doc)
+        var signedUrl = await AwsClient.getGetImageSignedUrl(`${doc._id}-1.jpg`, 'breweryImages')
         results.push(
             {
-                breweryId: element._id,
-                name: element.name,
-                address: element.address,
-                price: element.price,
-                accommodations: element.accommodations,
-                distance: element.distance,
-                numReviews: element.numReviews,
-                rating: parseFloat(element.ratings),
+                breweryId: doc._id,
+                name: doc.name,
+                address: doc.address,
+                price: doc.price,
+                accommodations: doc.accommodations,
+                distance: doc.distance,
+                numReviews: doc.numReviews,
+                rating: parseFloat(doc.ratings),
                 openNow: open[0],
                 kidFriendlyNow: open[1],
-                signedUrl: AwsClient.getGetImageSignedUrl(`${element._id}-1.jpg`, 'breweryImages')
+                signedUrl
             }
         )
-    })
+    }
 
     // return only certain information necessary for displaying
     // an individual location on the list/map view
@@ -453,15 +455,19 @@ router.get('/brewery', async(req, res) => {
         return res.status(400).send({error: "Could not find the specified brewery location. Please try again."})
     }
 
+    var signedUrl1 = await AwsClient.getGetImageSignedUrl(`${brewery._id}-1.jpg`, 'breweryImages')
+    var signedUrl2 = await AwsClient.getGetImageSignedUrl(`${brewery._id}-2.jpg`, 'breweryImages')
+    var signedUrl3 = await AwsClient.getGetImageSignedUrl(`${brewery._id}-3.jpg`, 'breweryImages')
+
     var open = getOpenNow(brewery)
     res.status(200).send({count: 1, response: [
         {
             brewery: brewery,
             openNow: open[0],
             kidFriendlyNow: open[1],
-            signedUrl1: AwsClient.getGetImageSignedUrl(`${brewery._id}-1.jpg`, 'breweryImages'),
-            signedUrl2: AwsClient.getGetImageSignedUrl(`${brewery._id}-2.jpg`, 'breweryImages'),
-            signedUrl3: AwsClient.getGetImageSignedUrl(`${brewery._id}-3.jpg`, 'breweryImages')
+            signedUrl1, 
+            signedUrl2,
+            signedUrl3
         }
     ]})
 })
