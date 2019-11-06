@@ -43,7 +43,7 @@ router.post('/createReview', async (req, res) => {
                 username: user.userId
             }
 
-            const review = new Review({message, poster, brewery, rating, postedDate: Date.now()})
+            const review = new Review({message, poster, breweryId: brewery._id, rating, postedDate: Date.now()})
             await review.save()
 
             res.send({response: "Your review has been successfully added!"})
@@ -102,7 +102,7 @@ router.post('/editReview', async(req, res) => {
 router.get('/getBreweryReviews', async (req, res) => {
     var {breweryId} = req.query
 
-    const breweryReviews = await Review.find({brewery: breweryId})
+    const breweryReviews = await Review.find({breweryId})
     if (!breweryReviews || breweryReviews.length === 0) {
         return res.status(200).send({count: 0, response: "No reviews exist for this location."})
     }
