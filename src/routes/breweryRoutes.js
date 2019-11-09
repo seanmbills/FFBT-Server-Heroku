@@ -182,7 +182,8 @@ router.post('/updateBrewery', async(req, res) => {
                     }
                 )
             } catch (err) {
-                return res.status(401).send({error: "Experienced an error while trying to update a brewery location."})
+                console.log(err)
+                return res.status(401).send({error: err /*"Experienced an error while trying to update a brewery location."*/})
             }
         })
     })
