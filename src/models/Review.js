@@ -43,8 +43,11 @@ reviewSchema.pre('save', async function(next) {
 
         try {
             var newRating = doc.ratings * doc.numReviews
+            console.log(newRating)
             newRating = newRating + review.rating
+            console.log(newRating)
             newRating = newRating / (doc.numReviews + 1)
+            console.log(newRating)
 
             var newReviews = doc.numReviews + 1
             
