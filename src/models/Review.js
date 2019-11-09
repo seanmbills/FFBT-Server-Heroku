@@ -43,7 +43,7 @@ reviewSchema.pre('save', async function(next) {
 
         try {
             var newRating = doc.ratings * doc.numReviews
-            newRating = newRating * review.rating
+            newRating = newRating + review.rating
             newRating = newRating / (doc.numReviews + 1)
 
             var newReviews = doc.numReviews + 1
@@ -54,7 +54,8 @@ reviewSchema.pre('save', async function(next) {
 
             await doc.save()
         } catch (err) {
-            next(new Error("Experienced an issue when saving this review. Please try again later."))
+            // next(new Error("Experienced an issue when saving this review. Please try again later."))
+            next(new Error(err.message))
         }
     })
 
