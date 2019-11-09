@@ -67,7 +67,7 @@ const brewerySchema = new mongoose.Schema({
         }
     },
     ratings: {
-        type: mongoose.Types.Decimal128,
+        type: Number,/*mongoose.Types.Decimal128,*/
         required: true,
         validate: {
             validator: function(v) {
