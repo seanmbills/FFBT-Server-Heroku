@@ -58,7 +58,7 @@ router.post('/refreshAuth', async (req, res) => {
     const {authorization} = req.headers
     try {
         const refreshToken = authorization.replace('Bearer ', '')
-        jwt.verify(refreshToken, process.env.MONGO_SECRET_KEY, async(err, payload) => {
+        jwt.verify(refreshToken, process.env.MONGO_SECRET_KEY2, async(err, payload) => {
             if (err) {
                 return res.status(401).send({error: loginErrorMessage})
             }
