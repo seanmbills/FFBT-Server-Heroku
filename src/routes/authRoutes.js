@@ -29,7 +29,7 @@ router.post('/signin', async(req, res) => {
 
         const accessToken = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '5m'})
         const refreshToken = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY2, {expiresIn: '7d'})
-        res.send({accessToken, refreshToken})
+        res.send({token: accessToken, refreshToken})
     } catch (err) {
         return res.status(401).send({error: invalidMessage})
     }
@@ -48,7 +48,7 @@ router.post('/signup', async (req, res) => {
 
         const accessToken = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '5m'})
         const refreshToken = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY2, {expiresIn: '7d'})
-        res.send({accessToken, refreshToken, signedUrl})
+        res.send({token: accessToken, refreshToken, signedUrl})
     } catch (err) {
         return res.status(422).send({error: err.message})
     }
