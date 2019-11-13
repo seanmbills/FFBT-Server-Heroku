@@ -27,8 +27,9 @@ router.post('/signin', async(req, res) => {
     try {
         await user.comparePassword(password)
 
-        const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-        res.send({token})
+        const accessToken = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '5m'})
+        const refreshToken = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY2, {expiresIn: '7d'})
+        res.send({accessToken, refreshToken})
     } catch (err) {
         return res.status(401).send({error: invalidMessage})
     }
@@ -45,9 +46,29 @@ router.post('/signup', async (req, res) => {
         // the AWS S3 instance
         const signedUrl = AwsClient.getPostImageSignedUrl(`${userId}.jpg`, 'accountImages')
 
-        const token = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-        res.send({token, signedUrl})
+        const accessToken = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '5m'})
+        const refreshToken = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY2, {expiresIn: '7d'})
+        res.send({accessToken, refreshToken, signedUrl})
     } catch (err) {
+        return res.status(422).send({error: err.message})
+    }
+})
+
+router.post('/refreshAuth', async (req, res) => {
+    const {authorization} = req.headers
+    try {
+        const refreshToken = authorization.replace('Bearer ', '')
+        jwt.verify(refreshToken, process.env.MONGO_SECRET_KEY2, async(err, payload) => {
+            if (err) {
+                return res.status(401).send({error: loginErrorMessage})
+            }
+
+            const {userId} = payload
+
+            const accessToken = jwt.sign({userId}, process.env.MONGO_SECRET_KEY, {expiresIn: '5m'})
+            return res.status(200).send({accessToken})
+        })
+    } catch(err) {
         return res.status(422).send({error: err.message})
     }
 })
