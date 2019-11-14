@@ -120,5 +120,32 @@ router.get('/review', async(req, res) => {
     return res.status(200).send({count: 1, response: review})
 })
 
+router.get('/getOwnedReviews', async(req, res) => {
+    const {authorization} = req.headers
+    console.log(authorization)
+
+    const token = authorization.replace('Bearer ', '')
+    console.log(token)
+    jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
+        if (err) {
+            return res.status(401).send({error: loginErrorMessage})
+        }
+
+        try {
+            const {userId} = payload
+            var reviews = await Review.find({"poster.id": userId})
+            console.log(reviews)
+
+            if (!reviews) {
+                return res.status(200).send({count: 0, error: "Could not find any breweries associated with this account."})
+            }
+
+            res.status(200).send({count: reviews.length, ownedReviews: reviews})
+        } catch(err) {
+            res.status(400).send({count: 0, error: "Could not find any breweries associated with this user."})
+        }
+    })
+})
+
 // export all of the routes for the brewery routes object
 module.exports = router
