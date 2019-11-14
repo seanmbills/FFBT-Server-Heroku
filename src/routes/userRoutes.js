@@ -78,16 +78,13 @@ router.get('/getUserInfo', async(req, res) => {
 
         try {
             const {userId} = payload
-            console.log(userId)
             var user = await User.findById(userId)
-            console.log(user)
 
             if (!user) {
                 return res.status(400).send({error: "Could not find the specified user. Please try again."})
             }
 
             var signedUrl = await AwsClient.getGetImageSignedUrl(`${user.userId}.jpg`, 'accountImages')
-            console.log(signedUrl)
 
             res.status(200).send({
                 zipCode: user.zipCode,
@@ -112,7 +109,6 @@ router.post('/updatePassword', async(req, res) => {
 
     if (!authorization) {
         console.log("No authorization token provided for update password.")
-        console.log({error: loginErrorMessage})
         return res.status(401).send({error: loginErrorMessage})
     }
 

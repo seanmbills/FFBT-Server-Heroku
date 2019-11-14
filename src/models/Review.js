@@ -42,18 +42,13 @@ reviewSchema.pre('save', async function(next) {
         }
 
         try {
-            console.log(doc.ratings)
             var newRating = doc.ratings * doc.numReviews
-            console.log(newRating)
             newRating = newRating + review.rating
-            console.log(newRating)
             newRating = newRating / (doc.numReviews + 1)
-            console.log(newRating)
 
             var newReviews = doc.numReviews + 1
             
             doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
-            console.log(doc._doc)
             doc.markModified('ratings')
             doc.markModified('numReviews')
 
