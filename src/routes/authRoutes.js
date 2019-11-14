@@ -65,7 +65,7 @@ router.post('/refreshAuth', async (req, res) => {
 
             const {userId} = payload
 
-            const accessToken = jwt.sign({userId}, process.env.MONGO_SECRET_KEY, {expiresIn: '5m'})
+            const accessToken = jwt.sign({userId}, process.env.MONGO_SECRET_KEY, {expiresIn: 5 * 60})
             return res.status(200).send({accessToken})
         })
     } catch(err) {
