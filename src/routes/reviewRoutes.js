@@ -14,7 +14,7 @@ router.post('/createReview', async (req, res) => {
     const {authorization} = req.headers
 
     if (!authorization) {
-        return res.status(400).send({error: loginErrorMessage})
+        return res.status(401).send({error: loginErrorMessage})
     }
 
     const {message, breweryId, rating} = req.body
@@ -22,19 +22,19 @@ router.post('/createReview', async (req, res) => {
     const token = authorization.replace('Bearer ', '')
     jwt.verify(token, process.env.MONGO_SECRET_KEY, async(err, payload) => {
         if (err) {
-            return res.status(400).send({error: loginErrorMessage})
+            return res.status(401).send({error: loginErrorMessage})
         }
 
         const {userId} = payload
 
         const user = await User.findById(userId)
         if (!user) {
-            return res.status(401).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
+            return res.status(404).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
         }
 
         const brewery = await Brewery.findById(breweryId)
         if (!brewery) {
-            return res.status(401).send({error: "No brewery exists with this id. Please ensure you're writing a review for a valid brewery location."})
+            return res.status(404).send({error: "No brewery exists with this id. Please ensure you're writing a review for a valid brewery location."})
         }
 
         try {
@@ -71,11 +71,11 @@ router.post('/editReview', async(req, res) => {
         const {userId} = payload
         const review = await Review.findById(reviewId, async function(err, doc) {
             if (err) {
-                return res.status(400).send({error: "Couldn't find a review with this id. Please try again."})
+                return res.status(404).send({error: "Couldn't find a review with this id. Please try again."})
             }
 
             if (String(userId).trim() !== String(doc.poster.id).trim()) {
-                return res.status(400).send({error: "This user is not authorized to edit this review."})
+                return res.status(404).send({error: "This user is not authorized to edit this review."})
             }
 
             try {
@@ -93,7 +93,7 @@ router.post('/editReview', async(req, res) => {
                 await doc.save()
                 return res.status(200).send({count: 1, response: "Successfully updated your review!"})
             } catch (err) {
-                return res.status(401).send({error: "Experienced an issue while trying to update this review. Please try again later."})
+                return res.status(422).send({error: "Experienced an issue while trying to update this review. Please try again later."})
             }
         })
     })
@@ -114,7 +114,7 @@ router.get('/review', async(req, res) => {
 
     const review = await Review.findById(reviewId)
     if (!review) {
-        return res.status(400).send({error: "No review could be found with this id. Please try again."})
+        return res.status(404).send({error: "No review could be found with this id. Please try again."})
     }
 
     return res.status(200).send({count: 1, response: review})
@@ -122,10 +122,12 @@ router.get('/review', async(req, res) => {
 
 router.get('/getOwnedReviews', async(req, res) => {
     const {authorization} = req.headers
-    console.log(authorization)
+
+    if (!authorization) {
+        return res.status(401).send({error: loginErrorMessage})
+    }
 
     const token = authorization.replace('Bearer ', '')
-    console.log(token)
     jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
         if (err) {
             return res.status(401).send({error: loginErrorMessage})
@@ -134,7 +136,6 @@ router.get('/getOwnedReviews', async(req, res) => {
         try {
             const {userId} = payload
             var reviews = await Review.find({"poster.id": userId})
-            console.log(reviews)
 
             if (!reviews) {
                 return res.status(200).send({count: 0, error: "Could not find any breweries associated with this account."})
@@ -142,7 +143,7 @@ router.get('/getOwnedReviews', async(req, res) => {
 
             res.status(200).send({count: reviews.length, ownedReviews: reviews})
         } catch(err) {
-            res.status(400).send({count: 0, error: "Could not find any breweries associated with this user."})
+            res.status(422).send({count: 0, error: "Could not find any breweries associated with this user."})
         }
     })
 })

@@ -21,7 +21,7 @@ router.post('/signin', async(req, res) => {
     const user = await User.findOne({$or: [{'email': emailOrId}, {'userId': emailOrId}]})
     if (!user) {
         console.log("no user found with that id or email")
-        return res.status(401).send({error: invalidMessage})
+        return res.status(404).send({error: invalidMessage})
     }
 
     try {
@@ -29,9 +29,9 @@ router.post('/signin', async(req, res) => {
 
         const accessToken = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY, {expiresIn: 5 * 60})
         const refreshToken = jwt.sign({userId: user._id}, process.env.MONGO_SECRET_KEY2, {expiresIn: 60 * 60 * 24 * 7})
-        res.send({token: accessToken, refreshToken})
+        res.status(200).send({token: accessToken, refreshToken})
     } catch (err) {
-        return res.status(401).send({error: invalidMessage})
+        return res.status(422).send({error: invalidMessage})
     }
 })
 
@@ -56,6 +56,11 @@ router.post('/signup', async (req, res) => {
 
 router.post('/refreshAuth', async (req, res) => {
     const {authorization} = req.headers
+
+    if (!authorization) {
+        return res.status(401).send({error: loginErrorMessage})
+    }
+
     try {
         const refreshToken = authorization.replace('Bearer ', '')
         jwt.verify(refreshToken, process.env.MONGO_SECRET_KEY2, async(err, payload) => {
