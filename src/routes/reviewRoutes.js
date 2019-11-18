@@ -70,12 +70,12 @@ router.post('/editReview', async(req, res) => {
 
         const {userId} = payload
         try {
-            const review = await Review.findById(reviewId, async function (err, doc) {
+            const review = await Review.findById(reviewId, function (err, doc) {
                 if (err) {
                     return res.status(404).send({error: "Couldn't find a review with that id."})
                 }
 
-                if (String(userId).trim() !== String(doc.poster.id).trim()) {
+                if (String(userId).trim() !== String(doc._doc.poster.id).trim()) {
                     return res.status(401).send({error: "This user is not authorized to update this review."})
                 }
             })
@@ -83,10 +83,38 @@ router.post('/editReview', async(req, res) => {
                 return res.status(404).send({error: "No review exists with this id. Please ensure you're accessing a valid review."})
             }
 
-            const review = new Review({message: newMessage, poster: review.poster, breweryId: review.breweryId, rating: newRating, postedDate: Date.now()})
-            await review.save()
+            const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
+                if (err) {
+                    next(new Error("Must provide a valid brewery id for the review."))
+                }
+        
+                try {
+                    console.log(doc)
+                    var newRating = doc.ratings * doc.numReviews
+                    console.log(newRating)
+                    newRating = newRating - review.rating
+                    console.log(newRating)
+                    newRating = newRating / (doc.numReviews - 1)
+                    console.log(newRating)
+        
+                    var newReviews = doc.numReviews - 1
+                    console.log(newReviews)
+        
+                    doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
+                    console.log(doc._doc)
+                    doc.markModified('ratings')
+                    doc.markModified('numReviews')
+        
+                    await doc.save()
+                    console.log('saved')
+                } catch (err) {
+                    next(new Error(err.message))
+                }
+            })
 
-            await Review.deleteOne({_id: reviewId})
+            const newReview = new Review({message: newMessage, poster: review.poster, breweryId: review.breweryId, rating: newRating, postedDate: Date.now()})
+            await newReview.save()
+
             return res.status(200).send({count: 1, response: "Successfully updated your review!"})
         } catch (err) {
             return res.status(422).send({error: "Experienced an issue while trying to update this review. Please try again later."})

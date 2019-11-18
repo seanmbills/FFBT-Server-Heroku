@@ -33,33 +33,43 @@ const reviewSchema = new mongoose.Schema({
     }
 })
 
-reviewSchema.pre('deleteOne', async function(next) {
-    const review = this
+// reviewSchema.pre('deleteOne', { document: true, query: false }, async function(next) {
+//     const review = this
+//     console.log(review)
 
-    const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
-        if (err) {
-            next(new Error("Must provide a valid brewery id for the review."))
-        }
+//     console.log('deleting old')
 
-        try {
-            var newRating = doc.ratings * doc.numReviews
-            newRating = newRating - review.rating
-            newRating = newRating / (doc.numReviews - 1)
+//     const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
+//         if (err) {
+//             next(new Error("Must provide a valid brewery id for the review."))
+//         }
 
-            var newReviews = doc.numReviews - 1
+//         try {
+//             console.log(doc)
+//             var newRating = doc.ratings * doc.numReviews
+//             console.log(newRating)
+//             newRating = newRating - review.rating
+//             console.log(newRating)
+//             newRating = newRating / (doc.numReviews - 1)
+//             console.log(newRating)
 
-            doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
-            doc.markModified('ratings')
-            doc.markModified('numReviews')
+//             var newReviews = doc.numReviews - 1
+//             console.log(newReviews)
 
-            await doc.save()
-        } catch (err) {
-            next(new Error(err.message))
-        }
-    })
+//             doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
+//             console.log(doc._doc)
+//             doc.markModified('ratings')
+//             doc.markModified('numReviews')
 
-    next()
-})
+//             await doc.save()
+//             console.log('saved')
+//         } catch (err) {
+//             next(new Error(err.message))
+//         }
+//     })
+
+//     next()
+// })
 
 reviewSchema.pre('save', async function(next) {
     const review = this
