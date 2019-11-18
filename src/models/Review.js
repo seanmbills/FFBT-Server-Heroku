@@ -33,6 +33,34 @@ const reviewSchema = new mongoose.Schema({
     }
 })
 
+reviewSchema.pre('deleteOne', async function(next) {
+    const review = this
+
+    const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
+        if (err) {
+            next(new Error("Must provide a valid brewery id for the review."))
+        }
+
+        try {
+            var newRating = doc.ratings * doc.numReviews
+            newRating = newRating - review.rating
+            newRating = newRating / (doc.numReviews - 1)
+
+            var newReviews = doc.numReviews - 1
+
+            doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
+            doc.markModified('ratings')
+            doc.markModified('numReviews')
+
+            await doc.save()
+        } catch (err) {
+            next(new Error(err.message))
+        }
+    })
+
+    next()
+})
+
 reviewSchema.pre('save', async function(next) {
     const review = this
     
@@ -42,18 +70,13 @@ reviewSchema.pre('save', async function(next) {
         }
 
         try {
-            console.log(doc.ratings)
             var newRating = doc.ratings * doc.numReviews
-            console.log(newRating)
             newRating = newRating + review.rating
-            console.log(newRating)
             newRating = newRating / (doc.numReviews + 1)
-            console.log(newRating)
 
             var newReviews = doc.numReviews + 1
             
             doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
-            console.log(doc._doc)
             doc.markModified('ratings')
             doc.markModified('numReviews')
 
