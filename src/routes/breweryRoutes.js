@@ -182,7 +182,6 @@ router.post('/updateBrewery', async(req, res) => {
                     }
                 )
             } catch (err) {
-                console.log(err)
                 return res.status(401).send({error: err /*"Experienced an error while trying to update a brewery location."*/})
             }
         })
@@ -227,13 +226,11 @@ router.get('/search', async(req, res) => {
     longitude = longitude === undefined || longitude === null ? null : parseInt(longitude)
     zipCode = zipCode === undefined || zipCode === null ? null: parseInt(zipCode)
     distance = parseInt(distance)
-    console.log(distance)
     maximumPrice = parseInt(maximumPrice)
     minimumRating = parseInt(minimumRating)
     openNow = openNow !== undefined && openNow !== null && openNow === 'true' ? true : false
     kidFriendlyNow = kidFriendlyNow !== undefined && kidFriendlyNow !== null && kidFriendlyNow === 'true' ? true : false
     accommodationsSearch = accommodationsSearch === undefined || accommodationsSearch === null ? null : JSON.parse(accommodationsSearch)
-    // console.log(accommodationsSearch)
 
     if ((!latitude || !longitude) && !zipCode) {
         return res.status(400).send({error: "Must provide a location to search in."})
@@ -447,9 +444,7 @@ function getOpenNow(element, kidFriendly) {
 
 router.get('/brewery', async(req, res) => {
     // get all of the information for a specific document in storage
-    console.log(req)
     var {breweryId} = req.query
-    console.log("Brewery Id: " + breweryId)
 
     const brewery = await Brewery.findById(breweryId)
     if (!brewery) {

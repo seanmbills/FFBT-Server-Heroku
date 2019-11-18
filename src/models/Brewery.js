@@ -104,6 +104,7 @@ const brewerySchema = new mongoose.Schema({
     email: {
         type: String,
         unique:true,
+        sparse: true,
         validate: {
             validator: function(v) {
                 return emailRegex.test(v)
@@ -114,6 +115,7 @@ const brewerySchema = new mongoose.Schema({
     website: {
         type: String,
         unique: true,
+        sparse: true,
         validate: {
             validator: function(v) {
                 return urlRegex.test(v)
