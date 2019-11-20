@@ -14,7 +14,7 @@ router.post('/createReview', async (req, res) => {
     const {authorization} = req.headers
 
     if (!authorization) {
-        return res.status(400).send({error: loginErrorMessage})
+        return res.status(401).send({error: loginErrorMessage})
     }
 
     const {message, breweryId, rating} = req.body
@@ -22,19 +22,19 @@ router.post('/createReview', async (req, res) => {
     const token = authorization.replace('Bearer ', '')
     jwt.verify(token, process.env.MONGO_SECRET_KEY, async(err, payload) => {
         if (err) {
-            return res.status(400).send({error: loginErrorMessage})
+            return res.status(401).send({error: loginErrorMessage})
         }
 
         const {userId} = payload
 
         const user = await User.findById(userId)
         if (!user) {
-            return res.status(401).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
+            return res.status(404).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
         }
 
         const brewery = await Brewery.findById(breweryId)
         if (!brewery) {
-            return res.status(401).send({error: "No brewery exists with this id. Please ensure you're writing a review for a valid brewery location."})
+            return res.status(404).send({error: "No brewery exists with this id. Please ensure you're writing a review for a valid brewery location."})
         }
 
         try {
@@ -81,6 +81,7 @@ router.post('/editReview', async(req, res) => {
             })
             if (!review) {
                 return res.status(404).send({error: "No review exists with this id. Please ensure you're accessing a valid review."})
+
             }
 
             const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
@@ -131,10 +132,38 @@ router.get('/review', async(req, res) => {
 
     const review = await Review.findById(reviewId)
     if (!review) {
-        return res.status(400).send({error: "No review could be found with this id. Please try again."})
+        return res.status(404).send({error: "No review could be found with this id. Please try again."})
     }
 
     return res.status(200).send({count: 1, response: review})
+})
+
+router.get('/getOwnedReviews', async(req, res) => {
+    const {authorization} = req.headers
+
+    if (!authorization) {
+        return res.status(401).send({error: loginErrorMessage})
+    }
+
+    const token = authorization.replace('Bearer ', '')
+    jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
+        if (err) {
+            return res.status(401).send({error: loginErrorMessage})
+        }
+
+        try {
+            const {userId} = payload
+            var reviews = await Review.find({"poster.id": userId})
+
+            if (!reviews) {
+                return res.status(200).send({count: 0, error: "Could not find any breweries associated with this account."})
+            }
+
+            res.status(200).send({count: reviews.length, ownedReviews: reviews})
+        } catch(err) {
+            res.status(422).send({count: 0, error: "Could not find any breweries associated with this user."})
+        }
+    })
 })
 
 // export all of the routes for the brewery routes object
