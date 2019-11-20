@@ -20,18 +20,39 @@ The following list contains all of the currently-installed/-used Node packages i
 To install all required packages at once, "cd" into the folder created by cloning this repository and run the following from your command line: "npm -i"
 ### Packages: 
 - aws-sdk: v2.559.0
-- bcrypt: 3.0.6
-- body-parser: 1.19.0
-- express: 4.17.1
-- flat: 4.1.0
-- fuzzball: 1.3.0
-- geo-tz: 5.0.5
-- jsonwebtoken: 8.5.1
-- moment: 2.24.0
-- moment-timezone: 0.5.26
-- mongoose: 5.7.5
-- node-geocoder: 3.24.0
-- nodemailer: 6.3.0
+- bcrypt: v3.0.6
+- body-parser: v1.19.0
+- express: v4.17.1
+- flat: v4.1.0
+- fuzzball: v1.3.0
+- geo-tz: v5.0.5
+- jsonwebtoken: v8.5.1
+- moment: v2.24.0
+- moment-timezone: v0.5.26
+- mongoose: v5.7.5
+- node-geocoder: v3.24.0
+- nodemailer: v6.3.0
+
+## Build Instructions:
+At this time, no specific building needs to be done by the user in order to run this application. Each time changes are merged into the Master branch of this repository, the development branch of the associated Heroku application will re-build itself with all changes made. To learn more about Heroku, see the following links:
+- Managing Multiple Environments: https://devcenter.heroku.com/articles/multiple-environments
+- Config Vars: https://devcenter.heroku.com/articles/config-vars
+- Running Heroku Locally (for local development/testing): https://devcenter.heroku.com/articles/heroku-local
+
+To learn more about MongoDB, refer to the following links:
+- Running Locally: https://stackoverflow.com/questions/18452023/installing-and-running-mongodb-on-osx
+
+## Run Instructions:
+To run the project locally, see the above links for running Heroku and MongoDB locally. To run locally, or to test backend function calls on the development server, it's strongly advised that you install Postman on your machine. Download here: https://www.getpostman.com/downloads/
+
+For some information on using Postman, please refer to their docs here: https://learning.getpostman.com/?_ga=2.131658572.237368632.1574266369-119785825.1564078300
+
+## Troubleshooting:
+
+
+
+
+
 
 
 # Release Notes (v1.0.0)
