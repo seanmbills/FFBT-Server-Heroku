@@ -8,7 +8,7 @@ This repository includes all of the relevant code for creating and running the b
 # Version Number
 1.0.0
 
-# Release Notes
+# Release Notes (v1.0.0)
 ## New Features:
 This is the first official iteration of the backend for this project, as such all features are considered to be "new" at this time. See below for a list of all features.
 ### 1. User Features
@@ -38,4 +38,4 @@ At the current time, no bug fixes have been implemented, as this is the initial 
 
 
 ## Known Bugs/Defects:
-
+To date, all known bugs have been addressed to the best of our ability. With each new iteration of the frontend and backend, thorough testing to uncover potential new bugs will be conducted, with attempts made to address each bug deemed critical for that release.
