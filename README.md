@@ -7,16 +7,16 @@ This repository includes all of the relevant code for creating and running the b
 
 # Install Guide
 ## Pre-Requisites:
-This server component was built using Node.js, and all associated Node packages were installed and managed using the NPM (Node Package Manager).
-The current installed version of Node.js (used to both develop this project, and which is currently running on the Heroku server) is **v12.4.0**
-The current installed version of NPM is **6.4.1**
+This server component was built using Node.js, and all associated Node packages were installed and managed using the NPM (Node Package Manager).  
+The current installed version of Node.js (used to both develop this project, and which is currently running on the Heroku server) is **v12.4.0**  
+The current installed version of NPM is **6.4.1**  
 
-To install each of these, visit the following link: https://nodejs.org/en/download/
-Follow all setup instructions for your specific machine. 
+To install each of these, visit the following link: https://nodejs.org/en/download/  
+Follow all setup instructions for your specific machine.  
 **NOTE: the current 'recommended' version of Node.js is 12.13.1 -- this shouldn't cause any known compatibility issues with this project.**
 
 ## Dependent Node Packages:
-The following list contains all of the currently-installed/-used Node packages in the backend portion of this project. Note, to install each individually you can use the following syntax from your command line: "npm -i __name_of_package__"
+The following list contains all of the currently-installed/-used Node packages in the backend portion of this project. Note, to install each individually you can use the following syntax from your command line: "npm -i __name_of_package__"  
 To install all required packages at once, "cd" into the folder created by cloning this repository and run the following from your command line: "npm -i"
 ### Packages: 
 - aws-sdk: v2.559.0
@@ -48,7 +48,7 @@ To run the project locally, see the above links for running Heroku and MongoDB l
 For some information on using Postman, please refer to their docs here: https://learning.getpostman.com/?_ga=2.131658572.237368632.1574266369-119785825.1564078300
 
 ## Troubleshooting:
-
+The most-often-occurring issue related to the backend server is in unhandled promise rejections, due to the fact that much of our project handles various tasks asynchonrously. For information about promises, and asynchronous calls, StackOverflow is probably the best bet for resolving issues.  For troubleshooting other related portions of the project, see the "Docs" sections of the related software (i.e. Heroku, Postman, MongoDB), most of which are referenced above.
 
 
 
