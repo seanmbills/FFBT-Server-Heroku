@@ -32,7 +32,7 @@ router.post('/userUpdate', async(req, res) => {
 
         var user = await User.findById(userId, async function(err, doc) {
             if (err) {
-                return res.status(400).send({error: "Couldn't find a user with that email address."})
+                return res.status(404).send({error: "Couldn't find a user with that email address."})
             }
 
             var first = firstName === '' ? doc._doc.firstName : firstName
@@ -53,9 +53,9 @@ router.post('/userUpdate', async(req, res) => {
                 var signedUrl = AwsClient.getPostImageSignedUrl(`${doc.userId}.jpg`, "accountImages")
 
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-                res.send({token, signedUrl})
+                res.status(200).send({token, signedUrl})
             } catch (err) {
-                return res.status(401).send({error: err})
+                return res.status(422).send({error: err})
             }
         })
 
@@ -81,7 +81,7 @@ router.get('/getUserInfo', async(req, res) => {
             var user = await User.findById(userId)
 
             if (!user) {
-                return res.status(400).send({error: "Could not find the specified user. Please try again."})
+                return res.status(404).send({error: "Could not find the specified user. Please try again."})
             }
 
             var signedUrl = await AwsClient.getGetImageSignedUrl(`${user.userId}.jpg`, 'accountImages')
@@ -102,7 +102,6 @@ router.get('/getUserInfo', async(req, res) => {
 // should require additional auth (aka old password) to do so
 router.post('/updatePassword', async(req, res) => {
     const {authorization} = req.headers
-    console.log("Auth token: " + authorization)
     // authorization == 'Bearer _________;
     // need to string out 'Bearer' later
     const {oldPassword, newPassword} = req.body
@@ -122,7 +121,7 @@ router.post('/updatePassword', async(req, res) => {
         const {userId} = payload
         var user = await User.findById(userId, async function(err, doc) {
             if (err) {
-                return res.status(400).send({error: "Couldn't find your account. Please ensure you are logged in."})
+                return res.status(404).send({error: "Couldn't find your account. Please ensure you are logged in."})
             }
 
             try {
@@ -136,13 +135,11 @@ router.post('/updatePassword', async(req, res) => {
                 await doc.save()
 
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-                res.send({token})
+                res.status(200).send({token})
             } catch (err) {
-                return res.status(401).send({error: err})
+                return res.status(422).send({error: err})
             }
         })
-        
-
         req.user = user
     })
 })
@@ -168,7 +165,7 @@ router.post('/updateEmail', async(req, res) => {
         const {userId} = payload
         var user = await User.findById(userId, async function(err, doc) {
             if (err) {
-                return res.status(400).send({error: "Couldn't find a user with that email address."})
+                return res.status(404).send({error: "Couldn't find a user with that email address."})
             }
             try {
                 await doc.comparePassword(password).catch(function() {
@@ -181,13 +178,11 @@ router.post('/updateEmail', async(req, res) => {
                 await doc.save()
 
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-                res.send({token})
+                res.status(200).send({token})
             } catch (err) {
-                return res.status(401).send({error: err})
+                return res.status(422).send({error: err})
             }
         })
-        
-
         req.user = user
     })
 })
@@ -213,7 +208,7 @@ router.post('/updatePhone', async(req, res) => {
         const {userId} = payload
         var user = await User.findById(userId, async function(err, doc) {
             if (err) {
-                return res.status(400).send({error: "Couldn't find your account. Please make sure you are logged in."})
+                return res.status(404).send({error: "Couldn't find your account. Please make sure you are logged in."})
             }
 
             try {
@@ -227,9 +222,9 @@ router.post('/updatePhone', async(req, res) => {
                 await doc.save()
 
                 const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
-                res.send({token})
+                res.status(200).send({token})
             } catch (err) {
-                return res.status(401).send({error: err})
+                return res.status(422).send({error: err})
             }
         })
         req.user = user

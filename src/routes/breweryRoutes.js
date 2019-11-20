@@ -49,7 +49,7 @@ router.post('/createBrewery', async(req, res) => {
 
         const user = await User.findById(userId)
         if (!user)
-            return res.status(401).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
+            return res.status(404).send({error: "No user exists with this id. Please ensure you provide a valid authorization token."})
 
         try {
             var kidHours = {}
@@ -102,7 +102,7 @@ router.post('/updateBrewery', async(req, res) => {
         const {userId} = payload
         const brewery = await Brewery.findOne({_id: breweryId}, async function(err, doc) {
             if (err) {
-                return res.status(400).send({error: "Couldn't find any breweries associated with this user."})
+                return res.status(404).send({error: "Couldn't find any breweries associated with this user."})
             }
 
             if (String(userId).trim() !== String(doc.creator).trim()) {
@@ -141,12 +141,12 @@ router.post('/updateBrewery', async(req, res) => {
                     try {
                         var user = await User.findOne({email: newOwner})
                         if (!user) {
-                            return res.status(400).send({error: "Couldn't find an account connected to the specified new owner's email."})
+                            return res.status(404).send({error: "Couldn't find an account connected to the specified new owner's email."})
                         }
                         doc._doc = {...doc._doc, creator: user._id}
                         doc.markModified('creator')
                     } catch(err) {
-                        return res.status(401).send({error: err})
+                        return res.status(422).send({error: err})
                     }
                 }
                 if (newBusinessHours) {
@@ -182,7 +182,7 @@ router.post('/updateBrewery', async(req, res) => {
                     }
                 )
             } catch (err) {
-                return res.status(401).send({error: err /*"Experienced an error while trying to update a brewery location."*/})
+                return res.status(422).send({error: err /*"Experienced an error while trying to update a brewery location."*/})
             }
         })
     })
@@ -190,6 +190,10 @@ router.post('/updateBrewery', async(req, res) => {
 
 router.get('/getOwnedBreweries', async(req, res) => {
     const {authorization} = req.headers
+
+    if (!authorization) {
+        return res.status(401).send({error: loginErrorMessage})
+    }
 
     const token = authorization.replace('Bearer ', '')
     jwt.verify(token, process.env.MONGO_SECRET_KEY, async (err, payload) => {
@@ -213,7 +217,7 @@ router.get('/getOwnedBreweries', async(req, res) => {
             
             res.status(200).send({count: breweryNamesAndIds.length, names: breweryNamesAndIds})
         } catch(err) {
-            res.status(400).send({count: 0, error: "Could not find any breweries associated with this user."})
+            res.status(422).send({count: 0, error: "Could not find any breweries associated with this user."})
         }
     })
 })
@@ -448,7 +452,7 @@ router.get('/brewery', async(req, res) => {
 
     const brewery = await Brewery.findById(breweryId)
     if (!brewery) {
-        return res.status(400).send({error: "Could not find the specified brewery location. Please try again."})
+        return res.status(404).send({error: "Could not find the specified brewery location. Please try again."})
     }
 
     var signedUrl1 = await AwsClient.getGetImageSignedUrl(`${brewery._id}-1.jpg`, 'breweryImages')
