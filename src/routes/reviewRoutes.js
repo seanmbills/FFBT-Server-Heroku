@@ -69,33 +69,51 @@ router.post('/editReview', async(req, res) => {
         }
 
         const {userId} = payload
-        const review = await Review.findById(reviewId, async function(err, doc) {
-            if (err) {
-                return res.status(404).send({error: "Couldn't find a review with this id. Please try again."})
-            }
-
-            if (String(userId).trim() !== String(doc.poster.id).trim()) {
-                return res.status(404).send({error: "This user is not authorized to edit this review."})
-            }
-
-            try {
-                doc._doc = {...doc._doc}
-
-                if (newMessage) {
-                    doc._doc = {...doc._doc, message: newMessage}
-                    doc.markModified('message')
-                }
-                if (newRating) {
-                    doc._doc = {...doc._doc, rating: newRating}
-                    doc.markModified('rating')
+        try {
+            const review = await Review.findById(reviewId, function (err, doc) {
+                if (err) {
+                    return res.status(404).send({error: "Couldn't find a review with that id."})
                 }
 
-                await doc.save()
-                return res.status(200).send({count: 1, response: "Successfully updated your review!"})
-            } catch (err) {
-                return res.status(422).send({error: "Experienced an issue while trying to update this review. Please try again later."})
+                if (String(userId).trim() !== String(doc._doc.poster.id).trim()) {
+                    return res.status(401).send({error: "This user is not authorized to update this review."})
+                }
+            })
+            if (!review) {
+                return res.status(404).send({error: "No review exists with this id. Please ensure you're accessing a valid review."})
+
             }
-        })
+
+            const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
+                if (err) {
+                    next(new Error("Must provide a valid brewery id for the review."))
+                }
+        
+                try {
+                    var newRating = doc.ratings * doc.numReviews
+                    newRating = newRating - review.rating
+                    newRating = newRating / (doc.numReviews - 1)
+        
+                    var newReviews = doc.numReviews - 1
+        
+                    doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
+                    doc.markModified('ratings')
+                    doc.markModified('numReviews')
+        
+                    await doc.save()
+                    console.log('saved')
+                } catch (err) {
+                    next(new Error(err.message))
+                }
+            })
+
+            const newReview = new Review({message: newMessage, poster: review.poster, breweryId: review.breweryId, rating: newRating, postedDate: Date.now()})
+            await newReview.save()
+
+            return res.status(200).send({count: 1, response: "Successfully updated your review!"})
+        } catch (err) {
+            return res.status(422).send({error: "Experienced an issue while trying to update this review. Please try again later."})
+        }
     })
 })
 
