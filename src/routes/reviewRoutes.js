@@ -86,15 +86,16 @@ router.post('/editReview', async(req, res) => {
 
             // delete the old review
             await Review.findByIdAndDelete(review._id)
-
+            console.log("deleted old review")
             // get the list of reviews for the brewery now
             const breweryReviews = await Review.find({breweryId})
             var sum = 0
             breweryReviews.forEach((element) => {sum += element.rating})
             var avg = sum / breweryReviews.length
+            console.log("avg: " + avg)
 
             const brewery = await Brewery.findByIdAndUpdate(review.breweryId, {ratings: avg, numReviews: breweryReviews.length})
-
+            console.log('updated brewery numbers')
             // const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
             //     if (err) {
             //         next(new Error("Must provide a valid brewery id for the review."))
@@ -128,6 +129,7 @@ router.post('/editReview', async(req, res) => {
             console.log('saving new review')
             const newReview = new Review({message: newMessage, poster: review.poster, breweryId: review.breweryId, rating: newRating, postedDate: Date.now()})
             await newReview.save()
+            console.log('saved new review')
 
             return res.status(200).send({count: 1, response: "Successfully updated your review!"})
         } catch (err) {
