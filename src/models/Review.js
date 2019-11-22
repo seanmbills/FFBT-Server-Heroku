@@ -53,7 +53,9 @@ reviewSchema.pre('save', async function(next) {
             doc.markModified('ratings')
             doc.markModified('numReviews')
 
+            console.log(doc)
             await doc.save()
+            console.log('saved new review')
         } catch (err) {
             // next(new Error("Experienced an issue when saving this review. Please try again later."))
             next(new Error(err.message))

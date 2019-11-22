@@ -113,6 +113,8 @@ router.post('/editReview', async(req, res) => {
                 }
             })
 
+
+            console.log('saving new review')
             const newReview = new Review({message: newMessage, poster: review.poster, breweryId: review.breweryId, rating: newRating, postedDate: Date.now()})
             await newReview.save()
 
