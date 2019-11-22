@@ -88,7 +88,7 @@ router.post('/editReview', async(req, res) => {
             await Review.findByIdAndDelete(review._id)
             console.log("deleted old review")
             // get the list of reviews for the brewery now
-            const breweryReviews = await Review.find({breweryId})
+            const breweryReviews = await Review.find({breweryId: review.breweryId})
             var sum = 0
             breweryReviews.forEach((element) => {sum += element.rating})
             var avg = sum / breweryReviews.length
