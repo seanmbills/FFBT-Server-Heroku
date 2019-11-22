@@ -91,15 +91,21 @@ router.post('/editReview', async(req, res) => {
         
                 try {
                     var newRating = doc.ratings * doc.numReviews
+                    console.log(newRating)
                     newRating = newRating - review.rating
+                    console.log(newRating)
                     newRating = newRating / (doc.numReviews - 1)
+                    console.log(newRating)
         
                     var newReviews = doc.numReviews - 1
+                    console.log(newReviews)
         
                     doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
                     doc.markModified('ratings')
                     doc.markModified('numReviews')
         
+                    console.log(doc)
+
                     await doc.save()
                     console.log('saved')
                 } catch (err) {
