@@ -228,6 +228,8 @@ router.get('/search', async(req, res) => {
     
     latitude = latitude === undefined || latitude === null ? null : parseInt(latitude)
     longitude = longitude === undefined || longitude === null ? null : parseInt(longitude)
+    console.log("lat: " + latitude)
+    console.log("long: " + longitude)
     zipCode = zipCode === undefined || zipCode === null ? null: parseInt(zipCode)
     distance = parseInt(distance)
     maximumPrice = parseInt(maximumPrice)
@@ -255,6 +257,9 @@ router.get('/search', async(req, res) => {
             next(new Error("Invalid zip code provided for searching."))
         }
     }
+
+    console.log("lat 2: " + latitude)
+    console.log("long 2: " + longitude)
 
     // parse price and ratings critera into the start of a MongoDB search 
     const searchQuery = {
@@ -350,6 +355,8 @@ router.get('/search', async(req, res) => {
             }
         ) 
     }
+
+    console.log("aggregate: " + JSON.stringify(aggregate))
 
     var documents = await Brewery.aggregate(aggregate)
     if (documents === undefined || documents.length === 0){
