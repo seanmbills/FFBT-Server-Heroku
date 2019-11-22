@@ -84,36 +84,46 @@ router.post('/editReview', async(req, res) => {
 
             }
 
-            const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
-                if (err) {
-                    next(new Error("Must provide a valid brewery id for the review."))
-                }
-        
-                try {
-                    var newRating = doc.ratings * doc.numReviews
-                    console.log(newRating)
-                    newRating = newRating - review.rating
-                    console.log(newRating)
-                    newRating = newRating / (doc.numReviews - 1)
-                    console.log(newRating)
-        
-                    var newReviews = doc.numReviews - 1
-                    console.log(newReviews)
-        
-                    doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
-                    doc.markModified('ratings')
-                    doc.markModified('numReviews')
-        
-                    console.log(doc)
-
-                    await doc.save()
-                    console.log('saved')
-                } catch (err) {
-                    next(new Error(err.message))
-                }
-            })
-
+            // delete the old review
             await Review.findByIdAndDelete(review._id)
+
+            // get the list of reviews for the brewery now
+            const breweryReviews = await Review.find({breweryId})
+            var sum = 0
+            breweryReviews.forEach((element) => {sum += element.rating})
+            var avg = sum / breweryReviews.length
+
+            const brewery = await Brewery.findByIdAndUpdate(review.breweryId, {ratings: avg, numReviews: breweryReviews.length})
+
+            // const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
+            //     if (err) {
+            //         next(new Error("Must provide a valid brewery id for the review."))
+            //     }
+        
+            //     try {
+            //         var newRating = doc.ratings * doc.numReviews
+            //         console.log(newRating)
+            //         newRating = newRating - review.rating
+            //         console.log(newRating)
+            //         newRating = newRating / (doc.numReviews - 1)
+            //         console.log(newRating)
+        
+            //         var newReviews = doc.numReviews - 1
+            //         console.log(newReviews)
+        
+            //         doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
+            //         doc.markModified('ratings')
+            //         doc.markModified('numReviews')
+        
+            //         console.log(doc)
+
+            //         await doc.save()
+            //         console.log('saved')
+            //     } catch (err) {
+            //         next(new Error(err.message))
+            //     }
+            // })
+
 
             console.log('saving new review')
             const newReview = new Review({message: newMessage, poster: review.poster, breweryId: review.breweryId, rating: newRating, postedDate: Date.now()})
