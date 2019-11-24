@@ -43,7 +43,7 @@ router.post('/createReview', async (req, res) => {
                 username: user.userId
             }
 
-            const review = new Review({message, poster, breweryId: brewery._id, rating, postedDate: Date.now()})
+            const review = new Review({message, poster, breweryId: brewery._id, breweryName: brewery.name, rating, postedDate: Date.now()})
             await review.save()
 
             res.send({response: "Your review has been successfully added!"})
@@ -86,50 +86,19 @@ router.post('/editReview', async(req, res) => {
 
             // delete the old review
             await Review.findByIdAndDelete(review._id)
-            console.log("deleted old review")
             // get the list of reviews for the brewery now
             const breweryReviews = await Review.find({breweryId: review.breweryId})
             var sum = 0
             breweryReviews.forEach((element) => {sum += element.rating})
             var avg = sum / breweryReviews.length
-            console.log("avg: " + avg)
+
 
             const brewery = await Brewery.findByIdAndUpdate(review.breweryId, {ratings: avg, numReviews: breweryReviews.length})
-            console.log('updated brewery numbers')
-            // const brewery = await Brewery.findById(review.breweryId, async function(err, doc) {
-            //     if (err) {
-            //         next(new Error("Must provide a valid brewery id for the review."))
-            //     }
-        
-            //     try {
-            //         var newRating = doc.ratings * doc.numReviews
-            //         console.log(newRating)
-            //         newRating = newRating - review.rating
-            //         console.log(newRating)
-            //         newRating = newRating / (doc.numReviews - 1)
-            //         console.log(newRating)
-        
-            //         var newReviews = doc.numReviews - 1
-            //         console.log(newReviews)
-        
-            //         doc._doc = {...doc._doc, ratings: newRating, numReviews: newReviews}
-            //         doc.markModified('ratings')
-            //         doc.markModified('numReviews')
-        
-            //         console.log(doc)
-
-            //         await doc.save()
-            //         console.log('saved')
-            //     } catch (err) {
-            //         next(new Error(err.message))
-            //     }
-            // })
 
 
-            console.log('saving new review')
-            const newReview = new Review({message: newMessage, poster: review.poster, breweryId: review.breweryId, rating: newRating, postedDate: Date.now()})
+            const newReview = new Review({message: newMessage, poster: review.poster, breweryId: review.breweryId, breweryName: review.breweryName, rating: newRating, postedDate: Date.now()})
             await newReview.save()
-            console.log('saved new review')
+
 
             return res.status(200).send({count: 1, response: "Successfully updated your review!"})
         } catch (err) {
