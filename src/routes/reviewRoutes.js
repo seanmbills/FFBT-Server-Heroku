@@ -70,20 +70,12 @@ router.post('/editReview', async(req, res) => {
 
         const {userId} = payload
         try {
-            const review = await Review.findById(reviewId, function (err, doc) {
-                if (err) {
-                    return res.status(404).send({error: "Couldn't find a review with that id."})
-                }
-                console.log(doc)
-                if (doc && doc._doc)
-                    console.log(doc._doc)
-                if (String(userId).trim() !== String(doc._doc.poster.id).trim()) {
-                    return res.status(401).send({error: "This user is not authorized to update this review."})
-                }
-            })
-            if (!review) {
+            const review = await Review.findById(reviewId)
+            if (review === null || !review) {
                 return res.status(404).send({error: "No review exists with this id. Please ensure you're accessing a valid review."})
-
+            }
+            if (String(userId).trim() !== String(review.poster.id).trim()) {
+                return res.status(401).send({Error: "This user is not authorized to update this review."})
             }
 
             // delete the old review
