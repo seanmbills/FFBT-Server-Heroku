@@ -52,7 +52,7 @@ router.post('/userUpdate', async(req, res) => {
     
                 var signedUrl = AwsClient.getPostImageSignedUrl(`${doc.userId}.jpg`, "accountImages")
 
-                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
+                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: 5 * 60})
                 res.status(200).send({token, signedUrl})
             } catch (err) {
                 return res.status(422).send({error: err})
@@ -136,7 +136,7 @@ router.post('/updatePassword', async(req, res) => {
                 doc.markModified('updatedDate')
                 await doc.save()
 
-                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
+                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: 5 * 60})
                 res.status(200).send({token})
             } catch (err) {
                 return res.status(422).send({error: err})
@@ -182,7 +182,7 @@ router.post('/updateEmail', async(req, res) => {
                 doc.markModified('updatedDate')
                 await doc.save()
 
-                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
+                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: 5 * 60})
                 res.status(200).send({token})
             } catch (err) {
                 return res.status(422).send({error: err})
@@ -228,7 +228,7 @@ router.post('/updatePhone', async(req, res) => {
                 doc.markModified('updatedDate')
                 await doc.save()
 
-                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: '1h'})
+                const token = jwt.sign({userId: doc._id}, process.env.MONGO_SECRET_KEY, {expiresIn: 5 * 60})
                 res.status(200).send({token})
             } catch (err) {
                 return res.status(422).send({error: err})
