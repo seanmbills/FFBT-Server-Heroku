@@ -74,7 +74,9 @@ router.post('/editReview', async(req, res) => {
                 if (err) {
                     return res.status(404).send({error: "Couldn't find a review with that id."})
                 }
-
+                console.log(doc)
+                if (doc && doc._doc)
+                    console.log(doc._doc)
                 if (String(userId).trim() !== String(doc._doc.poster.id).trim()) {
                     return res.status(401).send({error: "This user is not authorized to update this review."})
                 }
