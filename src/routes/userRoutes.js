@@ -125,10 +125,12 @@ router.post('/updatePassword', async(req, res) => {
             }
 
             try {
-                await doc.comparePassword(oldPassword).catch(function() {
-                    return res.status(400).send({error: invalidMessage})
-                })
-                
+                await doc.comparePassword(oldPassword)
+            } catch (err) {
+                return res.status(400).send({error: invalidMessage})
+            }
+
+            try {
                 doc._doc = {...doc._doc, password: newPassword, updatedDate: Date.now()}
                 doc.markModified('password')
                 doc.markModified('updatedDate')
@@ -167,11 +169,14 @@ router.post('/updateEmail', async(req, res) => {
             if (err) {
                 return res.status(404).send({error: "Couldn't find a user with that email address."})
             }
+
             try {
-                await doc.comparePassword(password).catch(function() {
-                    return res.status(400).send({error: invalidMessage})
-                })
-                
+                await doc.comparePassword(password)
+            } catch (err) {
+                return res.status(400).send({error: invalidMessage})
+            }
+
+            try {
                 doc._doc = {...doc._doc, email: newEmail, updatedDate: Date.now()}
                 doc.markModified('email')
                 doc.markModified('updatedDate')
@@ -212,10 +217,12 @@ router.post('/updatePhone', async(req, res) => {
             }
 
             try {
-                await doc.comparePassword(password).catch(function() {
-                    return res.status(400).send({error: invalidMessage})
-                })
-                
+                await doc.comparePassword(password)
+            } catch (err) {
+                return res.status(400).send({error: invalidMessage})
+            }
+
+            try {
                 doc._doc = {...doc._doc, phoneNumber: newPhone, updatedDate: Date.now()}
                 doc.markModified('phoneNumber')
                 doc.markModified('updatedDate')
