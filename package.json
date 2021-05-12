@@ -29,6 +29,6 @@
     "moment-timezone": "^0.5.26",
     "mongoose": "^5.7.5",
     "node-geocoder": "^3.24.0",
-    "nodemailer": "^6.3.0"
+    "nodemailer": "^6.4.16"
   }
 }
